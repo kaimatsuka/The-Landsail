@@ -48,7 +48,9 @@
 %V_MAX = actual predicted maximum yacht velocity based on flip/slip criteria
 %"CG" refers to center of gravity
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-clear;	%clear memory before running program
+
+clear all;	%clear memory before running program
+close all;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %SINGLE VALUE PARAMETERS THAT REMAIN CONSTANT FOR ENTIRE SIMULATION
@@ -58,7 +60,9 @@ RHO_AIR = 1.175*10^-7;					%density of air (lb*sec^2/in^4)
 MU_AIR = 2.7326*10^-8;					%viscosity of air (lb*sec/in^2)
 g = 32.2;								%gravity (ft/sec^2)
 %true wind speed
-V_TRUE_MPH = 20;						%true wind velocity (mph)
+% V_TRUE_MPH = 20;						%true wind velocity (mph)
+V_TRUE_MPH = 11.1847;					%true wind velocity (mph)
+
 V_TRUE = V_TRUE_MPH*(528/360)*12;   	%true wind velocity (in/sec)
 %wing properties (assuming symmetric section)
 N_WING = 1;								%number of wings/sails
@@ -110,27 +114,33 @@ CD_BEAM = CD0_BEAM+((CL_BEAM^2)/(pi*AR_BEAM));	%crossbeam coefficient of drag
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %PRE-LOOP CALCULATIONS
 %CG/BEAM moment arm for righting moment calculation
-if N_WHEEL == 4										%for a 4 wheeled symmetric yacht (track front = track rear)
-   N_WHEEL_FT = 2;									%two front wheels
-   N_WHEEL_RE = 2;									%two rear wheels
-   zeta = 0;											%angle between flipping force and F_SIDE is zero (rad)
-   ARM_CG = TRACK/2;									%cg moment arm for righting moment (in)
-   ARM_BEAM = TRACK/2;								%beam moment arm for righting moment (in)
-   N_BEAM = 2;											%number of crossbeams for down force generation (probably has 2 crossbeams)
-elseif N_WHEEL == 3									%for a 3 wheeled symmetric yacht (2 wheels in rear)
-   N_WHEEL_FT = 1;									%one front wheel
-   N_WHEEL_RE = 2;									%two rear wheels
-   zeta = atan((TRACK/2)/WHEELBASE);			%angle made between front wheel and each rear wheel (rad)
-   ARM_CG = (WHEELBASE-DIST_CG)*sin(zeta);	%cg moment arm for righting moment (in)
-   ARM_BEAM = (TRACK/2)*cos(zeta);				%beam moment arm for righting moment (in)
-	N_BEAM = 1;											%number of crossbeams for down force generation (rear crossbeam only)
+if N_WHEEL == 4	%for a 4 wheeled symmetric yacht (track front = track rear)
+
+    N_WHEEL_FT = 2;							%two front wheels
+    N_WHEEL_RE = 2;							%two rear wheels
+    zeta = 0;								%angle between flipping force and F_SIDE is zero (rad)
+    ARM_CG = TRACK/2;						%cg moment arm for righting moment (in)
+    ARM_BEAM = TRACK/2;						%beam moment arm for righting moment (in)
+    N_BEAM = 2;								%number of crossbeams for down force generation (probably has 2 crossbeams)
+
+elseif N_WHEEL == 3	%for a 3 wheeled symmetric yacht (2 wheels in rear)
+
+    N_WHEEL_FT = 1;							%one front wheel
+    N_WHEEL_RE = 2;							%two rear wheels
+    zeta = atan((TRACK/2)/WHEELBASE);		%angle made between front wheel and each rear wheel (rad)
+    ARM_CG = (WHEELBASE-DIST_CG)*sin(zeta);	%cg moment arm for righting moment (in)
+    ARM_BEAM = (TRACK/2)*cos(zeta);			%beam moment arm for righting moment (in)
+    N_BEAM = 1;								%number of crossbeams for down force generation (rear crossbeam only)
+
 end
+
 %main program loop parameters/starting values
-e = 0.050;						%error sensitivity for thrust equilibrium check (lbs)
-dv = 0;							%initial value for velocity change (in/sec)
-vy0 = 100;						%initial value for vehicle velocity (in/sec)
-vy = vy0;						%assign initial value to vy (in/sec)
-F_THRUST = 1;					%initial non-zero value for thrust force (lbs)
+e = 0.050;		%error sensitivity for thrust equilibrium check (lbs)
+dv = 0;			%initial value for velocity change (in/sec)
+vy0 = 100;		%initial value for vehicle velocity (in/sec)
+vy = vy0;		%assign initial value to vy (in/sec)
+F_THRUST = 1;	%initial non-zero value for thrust force (lbs)
+
 %define matrices PHI and THETA for main program loops
 %for smoother plot make N_phi and N_theta larger (this will make the program take longer to run)
 N_phi = 39;									%number of divisions in PHI
@@ -158,81 +168,94 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
         vy = vy + SIGN_F_THRUST*dv;					%increment/decrement guess for vehicle velocity (in/sec)
 
         %do calculations necessary to find net thrust
-		if V_TRUE*cos(phi) + vy > 0																	%if apparent wind is from bow
-			beta = atan((V_TRUE*sin(phi))/(vy+V_TRUE*cos(phi)));								%calc beta for beta < pi/2 (rad)
-        else																									%if apparent wind is from stern
+		if V_TRUE*cos(phi) + vy > 0			%if apparent wind is from bow
+			beta = atan((V_TRUE*sin(phi))/(vy+V_TRUE*cos(phi)));						%calc beta for beta < pi/2 (rad)
+        else								%if apparent wind is from stern
             beta = atan((V_TRUE*sin(phi-(pi/2))-vy)/(V_TRUE*cos(phi-(pi/2))))+pi/2;		%calc beta for beta > pi/2 (rad)
-        end																									%end if loop
-        alpha = beta-theta;															%calc alpha - wing angle of attack (rad)
+        end %end if 
+        
+        alpha = beta-theta;                                             %calc alpha - wing angle of attack (rad)
         V_APPARENT = sqrt((vy+V_TRUE*cos(phi))^2+(V_TRUE*sin(phi))^2);	%calc magnitude of apparent wind velocity (in/sec)
-        V_FRONT = V_APPARENT*cos(beta);											%calc apparent wind velocity in direction of vehicle velocity (in/sec)
-        SIGN_V_FRONT = cos(beta)/abs(cos(beta));								%direction of front component of apparent wind (+1 from bow, -1 from stern)
-   	    %wing lift and drag with rough approximation to lift drop off after stall
-        if alpha > stall					 												%if angle of attack is less than stall angle
-            CL_WING = (CL_WING_MAX*exp(stall))*exp(-CL_DROP_FACTOR*alpha);	%calc reduced wing lift coefficient
-            CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));						%calc wing drag coefficient for this angle of attack
-        else																					%if angle of attack is greter than stall angle
-      	CL_WING = 2*pi*sin(alpha)/(1+2/AR_WING);								%calc wing lift coefficient for this angle of attack
-   		CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));						%calc wing drag coefficient for this angle of attack
-        end																					%end if loop
-        AP_WING = A_WING*(1-((1-cos(psi))*alpha)/(pi/2));						%linear approximation to adjust effective wing area based on alpha and psi (in^2)
+        V_FRONT = V_APPARENT*cos(beta);									%calc apparent wind velocity in direction of vehicle velocity (in/sec)
+        SIGN_V_FRONT = cos(beta)/abs(cos(beta));						%direction of front component of apparent wind (+1 from bow, -1 from stern)
+   	    
+        %wing lift and drag with rough approximation to lift drop off after stall
+        if alpha > stall	%if angle of attack is greater than stall angle
+            CL_WING = (CL_WING_MAX*exp(stall))*exp(-CL_DROP_FACTOR*alpha);  %calc reduced wing lift coefficient
+            CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));				    %calc wing drag coefficient for this angle of attack
+        else %if angle of attack is less than stall angle
+            CL_WING = 2*pi*sin(alpha)/(1+2/AR_WING);					    %calc wing lift coefficient for this angle of attack
+            CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));				    %calc wing drag coefficient for this angle of attack
+        end	%end if loop
+        
+        AP_WING = A_WING*(1-((1-cos(psi))*alpha)/(pi/2));	%linear approximation to adjust effective wing area based on alpha and psi (in^2)
         %NOTE: when alpha is zero, AP_WING = A_WING, if alpha is 90 deg, AP_WING = A_WING*cos(psi)
         %this leads to the linear approximation: AP_WING = A_WING*(1-((1-cos(psi))*alpha)/(pi/2));
         F_LIFT_WING = N_WING*0.5*CL_WING*RHO_AIR*(V_APPARENT^2)*AP_WING;	%calc total wing lift force (lbs)
         F_DRAG_WING = N_WING*0.5*CD_WING*RHO_AIR*(V_APPARENT^2)*AP_WING;	%calc total wing drag force (lbs)
         %yacht/fuselage drag (not including crossbeams)
         F_DRAG_BODY = SIGN_V_FRONT*0.5*CD_BODY*RHO_AIR*(V_FRONT^2)*AP_BODY;	%calc fuselage drag force (lbs)
+        
         %crossbeam lift (down force) and drag
-    	if SIGN_V_FRONT == 1																	%for apparent wind from bow
-		   F_LIFT_BEAM = N_BEAM*0.5*CL_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;		%calc total crossbeam lift force (lbs)
-           F_DRAG_BEAM = N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;		%calc total crossbeam drag force (lbs)
-        else																						%for apparent wind from stern
-      	F_LIFT_BEAM = 0;																	%crossbeam generates zero lift
-   		F_DRAG_BEAM = -2*N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;	%calc total crossbeam drag force (lbs)
-    end																						%end if loop
-   %wheel drag (rolling viscous friction)
-   RPS_WHEEL_FT = vy/(pi*DIAM_WHEEL_FT);														%calc front wheel rev per sec (rps)
-   RPS_WHEEL_RE = vy/(pi*DIAM_WHEEL_RE);														%calc rear wheel rev per sec (rps)
-   F_DRAG_WHEEL = B_WHEEL*(N_WHEEL_FT*RPS_WHEEL_FT + N_WHEEL_RE*RPS_WHEEL_RE);	%calc total wheel drag force (lbs)
-   F_DRAG_WHEEL = max(F_DRAG_WHEEL,F_DRAG_WHEEL_MIN);										%use minimum wheel rolling resistance for low speeds (lbs)
-   %sum up all forward thrust forces
-	F_SIDE = F_LIFT_WING*cos(beta)*cos(psi)+F_DRAG_WING*sin(beta);		%calc sideways sliding force (lbs)
-   F_THRUST = F_LIFT_WING*sin(beta)*cos(psi)-F_DRAG_WING*cos(beta)-F_DRAG_BODY-F_DRAG_BEAM-F_DRAG_WHEEL;	%calc net thrust force (lbs)
-   %SLIP/FLIP required quantities (righting/flipping moment and side friction)
-	F_DOWN = WEIGHT + F_LIFT_BEAM + F_LIFT_WING*sin(psi);					%total down force from crossbeam and wing (lb)
-	M_RIGHT = WEIGHT*ARM_CG + F_LIFT_BEAM*ARM_BEAM;							%available righting moment (in*lb)
-   F_FLIP = F_SIDE*cos(zeta) + F_THRUST*sin(zeta);							%component of rig force perpendicular to supporing wheels (lbs)
-   M_FLIP = F_FLIP*ARM_WING;														%flipping moment from rig (in*lb)
-	F_FRICT = F_DOWN*FRCT;															%total available sideways friction force (lbs)
-   %END OF ALL FORCE AND MOMENT CALCULATIONS FOR THIS LOOP
-   %scale velocity step change for next loop
-   X = 10;													%scale factor for calculating dv
-   dv = X*abs(F_THRUST);								%scale velocity change by F_THRUST (if X is too large loop becomes unstable)
-		%perform slip criteria calculations
-  		if F_SIDE > F_FRICT			%if side sliding force from rig exceeds available friction force
-			SLIP(t) = 1;				%set SLIP to 1 (yes)
-		else								%if friction is greater than sliding force
-			SLIP(t) = 0;				%set SLIP to 0 (no)
-		end								%end SLIP if loop
+    	if SIGN_V_FRONT == 1 %for apparent wind from bow
+            F_LIFT_BEAM = N_BEAM*0.5*CL_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;	%calc total crossbeam lift force (lbs)
+            F_DRAG_BEAM = N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;	%calc total crossbeam drag force (lbs)
+        else %for apparent wind from stern
+            F_LIFT_BEAM = 0;                                				%crossbeam generates zero lift
+            F_DRAG_BEAM = -2*N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;	%calc total crossbeam drag force (lbs)
+        end	%end if loop
+    
+        %wheel drag (rolling viscous friction)
+        RPS_WHEEL_FT = vy/(pi*DIAM_WHEEL_FT);										%calc front wheel rev per sec (rps)
+        RPS_WHEEL_RE = vy/(pi*DIAM_WHEEL_RE);										%calc rear wheel rev per sec (rps)
+        F_DRAG_WHEEL = B_WHEEL*(N_WHEEL_FT*RPS_WHEEL_FT + N_WHEEL_RE*RPS_WHEEL_RE);	%calc total wheel drag force (lbs)
+        F_DRAG_WHEEL = max(F_DRAG_WHEEL,F_DRAG_WHEEL_MIN);          				%use minimum wheel rolling resistance for low speeds (lbs)
+
+        %sum up all forward thrust forces
+        F_SIDE = F_LIFT_WING*cos(beta)*cos(psi)+F_DRAG_WING*sin(beta);		%calc sideways sliding force (lbs)
+        F_THRUST = F_LIFT_WING*sin(beta)*cos(psi)-F_DRAG_WING*cos(beta)-F_DRAG_BODY-F_DRAG_BEAM-F_DRAG_WHEEL;	%calc net thrust force (lbs)
+    
+    %SLIP/FLIP required quantities (righting/flipping moment and side friction)
+	F_DOWN = WEIGHT + F_LIFT_BEAM + F_LIFT_WING*sin(psi);		%total down force from crossbeam and wing (lb)
+	M_RIGHT = WEIGHT*ARM_CG + F_LIFT_BEAM*ARM_BEAM;				%available righting moment (in*lb)
+    F_FLIP = F_SIDE*cos(zeta) + F_THRUST*sin(zeta);				%component of rig force perpendicular to supporing wheels (lbs)
+    M_FLIP = F_FLIP*ARM_WING;									%flipping moment from rig (in*lb)
+    F_FRICT = F_DOWN*FRCT;										%total available sideways friction force (lbs)
+    %END OF ALL FORCE AND MOMENT CALCULATIONS FOR THIS LOOP
+    
+    %scale velocity step change for next loop
+    X = 10;													%scale factor for calculating dv
+    dv = X*abs(F_THRUST);								%scale velocity change by F_THRUST (if X is too large loop becomes unstable)
+		
+        %perform slip criteria calculations
+  		if F_SIDE > F_FRICT	%if side sliding force from rig exceeds available friction force
+			SLIP(t) = 1;		%set SLIP to 1 (yes)
+		else				%if friction is greater than sliding force
+			SLIP(t) = 0;		%set SLIP to 0 (no)
+		end	%end SLIP if loop
+        
 		%perform flip criteria calculations
-		if M_FLIP > M_RIGHT			%if flipping moment from rig exceeds available righting moment
-			FLIP(t) = 1;				%set FLIP to 1 (yes)
-		else								%if righting moment is greater than flipping moment
-			FLIP(t) = 0;				%set FLIP to 0 (no)
-		end								%end FLIP if loop
-		%check for positive thrust force near zero, if so go to next theta value
+		if M_FLIP > M_RIGHT	 %if flipping moment from rig exceeds available righting moment
+			FLIP(t) = 1;            %set FLIP to 1 (yes)
+        else			     %if righting moment is greater than flipping moment
+			FLIP(t) = 0;			%set FLIP to 0 (no)
+		end	%end FLIP if loop
+		
+        %check for positive thrust force near zero, if so go to next theta value
 		if vy > 0 & alpha > 0		%only continue for loops that lead to positive velocity and angle of attack
-			if abs(F_THRUST) < e		%if thrust is close to zero (lbs)
-                VY(t) = vy;				%store final value of vehicle speed from this loop (in/sec) 
-        		t = t+1;					%increment t to calculate vehicle speed for next theta
-     		end 	  						%end thrust check if loop
-        else								%if yacht velocity or angle of attack is not positive
-     		VY(t) = 0;					%assign this velocity to zero (do not keep track of negative velocities)
-      	t = t+1;						%increment t to calculate vehicle speed for next theta
-      	vy = vy0;					%reset initial velocity guess
-        end								%end else loop
-    end	 								%end of while  t <= T loop
-	%truncate VY matrix to remove infinite element
+			if abs(F_THRUST) < e	%if thrust is close to zero (lbs)
+                VY(t) = vy;			%store final value of vehicle speed from this loop (in/sec) 
+        		t = t+1;			%increment t to calculate vehicle speed for next theta
+     		end 	  				%end thrust check if loop
+        else %if yacht velocity or angle of attack is not positive
+     		VY(t) = 0;				%assign this velocity to zero (do not keep track of negative velocities)
+            t = t+1;				%increment t to calculate vehicle speed for next theta
+            vy = vy0;				%reset initial velocity guess
+        end	%end else loop
+        
+    end	%end of while  t <= T loop
+	
+    %truncate VY matrix to remove infinite element
     V_LIMIT(p) = max(VY);			%store V_LIMIT vector as maximum velocity before SLIP and FLIP are considered (in/sec)
 	%change all velocity entries to zero if SLIP or FLIP = 1 (yes)
     for z = 1:1:T						%loop through entire matrix for each theta
@@ -241,49 +264,53 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
      	end								%end if loop
     end									%end for loop
     %store theta that corresponds to this VMAX
-    V_MAX(p) = max(VY);				%store maximum velocity found for this angle phi to VMAX(p)
-	q = 1;								%initialize counting var q = 1
-    while VY(q) ~= V_MAX(p)			%while VY_TRUNK(q) not equal VMAX
-        q = q+1;							%increment q until VY_TRUNK(q) = VMAX(p)
-	end									%end while loop
-    THETA_MAX(p) = THETA(q);		%store theta that corresponds to VMAX(p) (rad)
-end   									%end of "for 1:1:P" loop
+    V_MAX(p) = max(VY);			%store maximum velocity found for this angle phi to VMAX(p)
+	q = 1;						%initialize counting var q = 1
+    while VY(q) ~= V_MAX(p)		%while VY_TRUNK(q) not equal VMAX
+        q = q+1;				%increment q until VY_TRUNK(q) = VMAX(p)
+	end							%end while loop
+    THETA_MAX(p) = THETA(q);	%store theta that corresponds to VMAX(p) (rad)
+end   							%end of "for 1:1:P" loop
 %END MAIN PROGRAM LOOP
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %ORGANIZE DATA INTO MAXIMUM SPEED INFORMATION
-TOP_SPEED_IN_SEC = max(V_MAX);							%store top speed in in/sec (in/sec)
-TOP_SPEED_FT_SEC = TOP_SPEED_IN_SEC/12;				%convert top speed to ft/sec (ft/sec)
-TOP_SPEED_MPH = TOP_SPEED_FT_SEC*(360/528);			%convert top speed to mph (mph)
-V_LIMIT_MPH = (V_LIMIT/12)*(360/528);					%convert limit speed to mph (mph)
-V_MAX_FT_SEC = V_MAX/12;									%convert maximum speed matrix to mph (ft/sec)
-V_MAX_MPH = (V_MAX_FT_SEC)*(360/528);					%convert maximum speed matrix to mph (mph)
+TOP_SPEED_IN_SEC = max(V_MAX);					%store top speed in in/sec (in/sec)
+TOP_SPEED_FT_SEC = TOP_SPEED_IN_SEC/12;			%convert top speed to ft/sec (ft/sec)
+TOP_SPEED_MPH = TOP_SPEED_FT_SEC*(360/528);		%convert top speed to mph (mph)
+V_LIMIT_MPH = (V_LIMIT/12)*(360/528);			%convert limit speed to mph (mph)
+V_MAX_FT_SEC = V_MAX/12;						%convert maximum speed matrix to mph (ft/sec)
+V_MAX_MPH = (V_MAX_FT_SEC)*(360/528);			%convert maximum speed matrix to mph (mph)
 
-for j= 1:1:P-1													%loop through all of matrix V_MAX
-   if V_MAX(j) == TOP_SPEED_IN_SEC						%look for entry of maximum velocity
-      J = j;													%if this is that entry, save entry number
-   end															%end if loop
-end																%end for loop
+for j= 1:1:P-1							%loop through all of matrix V_MAX
+   if V_MAX(j) == TOP_SPEED_IN_SEC		%look for entry of maximum velocity
+      J = j;							%if this is that entry, save entry number
+   end									%end if loop
+end										%end for loop
 
-THETA_TOP_SPEED_RAD = THETA_MAX(J);						%store theta that corresponds to TOP_SPEED_MPH (rad)
-PHI_TOP_SPEED_RAD = PHI(J);								%store phi that corresponds to TOP_SPEED_MPH (rad)
+THETA_TOP_SPEED_RAD = THETA_MAX(J);					%store theta that corresponds to TOP_SPEED_MPH (rad)
+PHI_TOP_SPEED_RAD = PHI(J);							%store phi that corresponds to TOP_SPEED_MPH (rad)
 THETA_TOP_SPEED_DEG = THETA_TOP_SPEED_RAD*180/pi;	%convert to degrees (deg)
 PHI_TOP_SPEED_DEG = PHI_TOP_SPEED_RAD*180/pi;		%convert to degrees (deg)
 %plot velocity results in polar coordinates
-RHO_MAX = 3*ceil(max(V_LIMIT_MPH)/3);					%get maximum radius in whole numbers divisible by 3
-MP = 1;															%subplot dimension
-NP = 1;															%subplot dimension
-subplot(MP,NP,1),polar(0,RHO_MAX);						%create polar plot with whole number scale
-subplot(MP,NP,1),hold;										%hold plot so data can be plotted
+RHO_MAX = 3*ceil(max(V_LIMIT_MPH)/3);				%get maximum radius in whole numbers divisible by 3
+
+MP = 1;												%subplot dimension
+NP = 1;												%subplot dimension
+figure()
+subplot(MP,NP,1),polar(0,RHO_MAX);					%create polar plot with whole number scale
+subplot(MP,NP,1),hold;								%hold plot so data can be plotted
 subplot(MP,NP,1),polar(PHI,V_LIMIT_MPH,'ro--');		%polar plot limit velocity vs phi in red
 subplot(MP,NP,1),polar(-PHI,V_LIMIT_MPH,'ro--');	%polar plot limit velocity vs -phi (mirror image)
 subplot(MP,NP,1),polar(PHI,V_MAX_MPH,'bx-'); 		%polar plot maximum velocity vs phi in blue
 subplot(MP,NP,1),polar(-PHI,V_MAX_MPH,'bx-');		%polar plot maximum velocity vs -phi (mirror image)
-%subplot(MP,NP,1),title('Polar Vel. Plot (mph)');		%title plot
-subplot(MP,NP,1),hold;										%release plot to return to default condition
+%subplot(MP,NP,1),title('Polar Vel. Plot (mph)');	%title plot
+subplot(MP,NP,1),hold;								%release plot to return to default condition
+% legend('Blue','Red')
+
 %display desired values
-TOP_SPEED_MPH = round(TOP_SPEED_MPH)					%round and print maximum velocity (mph)
-PHI_TOP_SPEED_DEG = round(PHI_TOP_SPEED_DEG)			%round and print phi for TOP SPEED (deg)
+TOP_SPEED_MPH = round(TOP_SPEED_MPH)				%round and print maximum velocity (mph)
+PHI_TOP_SPEED_DEG = round(PHI_TOP_SPEED_DEG)		%round and print phi for TOP SPEED (deg)
 THETA_TOP_SPEED_DEG = round(THETA_TOP_SPEED_DEG)	%round and print theta for TOP SPEED (deg)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -292,12 +319,13 @@ THETA_TOP_SPEED_DEG = round(THETA_TOP_SPEED_DEG)	%round and print theta for TOP 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %CALCULATE APPROXIMATE TIME REQUIRED TO REACH 95% of TOP SPEED IGNORING SLIP/FLIP CRITERIA
-phi = PHI_TOP_SPEED_RAD;												%heading for top speed
-theta = THETA_TOP_SPEED_RAD;											%wing angle at top speed
-vy = 88;																		%begin at 5 mph yacht velocity
-dt = 0.2;																	%time increment (sec)
-TIME_MAX = 60*10;															%maximum time before loop is cut off (sec)
-time = 0;																	%start at time = zero
+phi = PHI_TOP_SPEED_RAD;		%heading for top speed
+theta = THETA_TOP_SPEED_RAD;	%wing angle at top speed
+vy = 88;						%begin at 5 mph yacht velocity
+dt = 0.2;						%time increment (sec)
+TIME_MAX = 60*10;				%maximum time before loop is cut off (sec)
+time = 0;						%start at time = zero
+
 while vy < 0.95*TOP_SPEED_IN_SEC & time < TIME_MAX	%keep looping until vy is 95% of top speed
 	
     if V_TRUE*cos(phi) + vy > 0																	%if apparent wind is from bow
@@ -320,13 +348,13 @@ while vy < 0.95*TOP_SPEED_IN_SEC & time < TIME_MAX	%keep looping until vy is 95%
         CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));					%calc wing drag coefficient for this angle of attack
     end																	%end if loop
     AP_WING = A_WING*(1-((1-cos(psi))*alpha)/(pi/2));					%linear approximation to adjust projected wing area based on alpha and psi (in^2)
-   %NOTE: when alpha is zero, AP_WING = A_WING, if alpha is 90 deg, AP_WING = A_WING*cos(psi)
-   %this leads to the linear approximation: AP_WING = A_WING*(1-((1-cos(psi))*alpha)/(pi/2));
-   F_LIFT_WING = N_WING*0.5*CL_WING*RHO_AIR*(V_APPARENT^2)*AP_WING;	    %calc total wing lift force (lbs)
+    %NOTE: when alpha is zero, AP_WING = A_WING, if alpha is 90 deg, AP_WING = A_WING*cos(psi)
+    %this leads to the linear approximation: AP_WING = A_WING*(1-((1-cos(psi))*alpha)/(pi/2));
+    F_LIFT_WING = N_WING*0.5*CL_WING*RHO_AIR*(V_APPARENT^2)*AP_WING;	    %calc total wing lift force (lbs)
 	F_DRAG_WING = N_WING*0.5*CD_WING*RHO_AIR*(V_APPARENT^2)*AP_WING;	%calc total wing drag force (lbs)
-   %yacht/fuselage drag (not including crossbeams)
-   F_DRAG_BODY = SIGN_V_FRONT*0.5*CD_BODY*RHO_AIR*(V_FRONT^2)*AP_BODY;	%calc fuselage drag force (lbs)
-   %crossbeam lift (down force) and drag
+    %yacht/fuselage drag (not including crossbeams)
+    F_DRAG_BODY = SIGN_V_FRONT*0.5*CD_BODY*RHO_AIR*(V_FRONT^2)*AP_BODY;	%calc fuselage drag force (lbs)
+    %crossbeam lift (down force) and drag
     if SIGN_V_FRONT == 1												%for apparent wind from bow
 	    F_LIFT_BEAM = N_BEAM*0.5*CL_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;	%calc total crossbeam lift force (lbs)
         F_DRAG_BEAM = N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;	%calc total crossbeam drag force (lbs)
@@ -347,65 +375,74 @@ while vy < 0.95*TOP_SPEED_IN_SEC & time < TIME_MAX	%keep looping until vy is 95%
 	ACCEL_IN_SEC = ACCEL_G*g*12;	%acceleration in (in/sec^2)
     vy = vy + dt*ACCEL_IN_SEC;		%increase velocity based on acceleration and time step (in/sec)
     time = time + dt;				%increment time by one time step (sec)
+
 end
 
 if time < TIME_MAX
-   TIME_TO_TOP_SPEED_SEC = time;													%time to top speed (sec)
-	TIME_TO_TOP_SPEED_MIN = TIME_TO_TOP_SPEED_SEC/60;						%time to top speed (min)
-	TIME_TO_TOP_SPEED_MIN = round(10*TIME_TO_TOP_SPEED_MIN)/10			%display time (min)
+    TIME_TO_TOP_SPEED_SEC = time;								%time to top speed (sec)
+	TIME_TO_TOP_SPEED_MIN = TIME_TO_TOP_SPEED_SEC/60;			%time to top speed (min)
+	TIME_TO_TOP_SPEED_MIN = round(10*TIME_TO_TOP_SPEED_MIN)/10	%display time (min)
 else
    disp('Accleration calc failed')
 end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %CALCULTE & STORE RELEVANT PARAMETERS AT FULL SPEED FOR ALL HEADINGS
-for p = 1:1:P													%loop for entire range of phi (all possible headings)
-	vy = V_MAX(p);												%top speed (in/sec)
-   phi = PHI(p);												%heading (rad)
-   %do calculations necessary to find net thrust
-   if vy > 0																								%only proceed for non zero velocities
-		if V_TRUE*cos(phi) + vy > 0																	%if apparent wind is from bow
-			BETA(p) = atan((V_TRUE*sin(phi))/(vy+V_TRUE*cos(phi)));							%calc beta for beta < pi/2 (rad)
-   	else																									%if apparent wind is from stern
-		   BETA(p) = atan((V_TRUE*sin(phi-(pi/2))-vy)/(V_TRUE*cos(phi-(pi/2))))+pi/2;	%calc beta for beta > pi/2 (rad)
-	   end																									%end if loop
-      ALPHA(p) = BETA(p)-THETA_MAX(p);												%calc alpha (rad)
-		V_APPARENT(p) = sqrt((vy+V_TRUE*cos(phi))^2+(V_TRUE*sin(phi))^2);	%calc magnitude of apparent wind velocity (in/sec)
-		V_FRONT = V_APPARENT(p)*cos(BETA(p));										%calc apparent wind velocity along vehicle velocity direction (in/sec)
-	  	SIGN_V_FRONT = cos(BETA(p))/abs(cos(BETA(p)));							%direction of front component of apparent wind (+1 from bow, -1 from stern)
-   	%wing lift and drag with rough approximation to lift drop off after stall
-   	if ALPHA(p) > stall				 													%if angle of attack is less than stall angle
-      	CL_WING = (CL_WING_MAX*exp(stall))*exp(-CL_DROP_FACTOR*ALPHA(p));	%calc reduced wing lift coefficient
-   		CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));							%calc wing drag coefficient for this angle of attack
-   	else																						%if angle of attack is greter than stall angle
-      	CL_WING = 2*pi*sin(ALPHA(p))/(1+2/AR_WING);								%calc wing lift coefficient for this angle of attack
-   		CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));							%calc wing drag coefficient for this angle of attack
-   	end																						%end if loop
-		AP_WING = A_WING*(1-((1-cos(psi))*ALPHA(p))/(pi/2));							%linear approximation to adjust projected wing area based on alpha and psi (in^2)
+for p = 1:1:P	%loop for entire range of phi (all possible headings)
+	vy = V_MAX(p);		%top speed (in/sec)
+    phi = PHI(p);		%heading (rad)
+    
+    %do calculations necessary to find net thrust
+	if vy > 0 %only proceed for non zero velocities
+        if V_TRUE*cos(phi) + vy > 0										%if apparent wind is from bow
+			BETA(p) = atan((V_TRUE*sin(phi))/(vy+V_TRUE*cos(phi)));		%calc beta for beta < pi/2 (rad)
+        else %if apparent wind is from stern
+            BETA(p) = atan((V_TRUE*sin(phi-(pi/2))-vy)/(V_TRUE*cos(phi-(pi/2))))+pi/2;	%calc beta for beta > pi/2 (rad)
+        end %end if loop
+        
+        ALPHA(p) = BETA(p)-THETA_MAX(p);                                    %calc alpha (rad)
+		V_APPARENT(p) = sqrt((vy+V_TRUE*cos(phi))^2+(V_TRUE*sin(phi))^2);   %calc magnitude of apparent wind velocity (in/sec)
+		V_FRONT = V_APPARENT(p)*cos(BETA(p));                               %calc apparent wind velocity along vehicle velocity direction (in/sec)
+	  	SIGN_V_FRONT = cos(BETA(p))/abs(cos(BETA(p)));                      %direction of front component of apparent wind (+1 from bow, -1 from stern)
+        
+        %wing lift and drag with rough approximation to lift drop off after stall
+        if ALPHA(p) > stall				 													%if angle of attack is less than stall angle
+            CL_WING = (CL_WING_MAX*exp(stall))*exp(-CL_DROP_FACTOR*ALPHA(p));	%calc reduced wing lift coefficient
+            CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));							%calc wing drag coefficient for this angle of attack
+        else																						%if angle of attack is greter than stall angle
+            CL_WING = 2*pi*sin(ALPHA(p))/(1+2/AR_WING);								%calc wing lift coefficient for this angle of attack
+            CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));							%calc wing drag coefficient for this angle of attack
+        end																						%end if loop
+        
+        AP_WING = A_WING*(1-((1-cos(psi))*ALPHA(p))/(pi/2));							%linear approximation to adjust projected wing area based on alpha and psi (in^2)
 		F_LIFT_WING(p) = N_WING*0.5*CL_WING*RHO_AIR*(V_APPARENT(p)^2)*AP_WING;	%calc total wing lift force (lbs)
 		F_DRAG_WING(p) = N_WING*0.5*CD_WING*RHO_AIR*(V_APPARENT(p)^2)*AP_WING;	%calc total wing drag force (lbs)
-   	%yacht/fuselage drag (not including crossbeams)
+        
+        %yacht/fuselage drag (not including crossbeams)
 		F_DRAG_BODY(p) = SIGN_V_FRONT*0.5*CD_BODY*RHO_AIR*(V_FRONT^2)*AP_BODY;	%calc fuselage drag force (lbs)
-		%crossbeam lift (down force) and drag
-      if SIGN_V_FRONT == 1																		%for apparent wind from bow
-		   F_LIFT_BEAM(p) = N_BEAM*0.5*CL_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;		%calc total crossbeam lift force (lbs)
-   		F_DRAG_BEAM(p) = N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;		%calc total crossbeam drag force (lbs)
-   	else
-      	F_LIFT_BEAM(p) = 0;
-   		F_DRAG_BEAM(p) = -2*N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;	%calc total crossbeam drag force (lbs)
-   	end
-   	%wheel drag (rolling viscous friction)
-   	RPS_WHEEL_FT = vy/(pi*DIAM_WHEEL_FT);															%calc front wheel rev per sec (rps)
-   	RPS_WHEEL_RE = vy/(pi*DIAM_WHEEL_RE);															%calc rear wheel rev per sec (rps)
-   	F_DRAG_WHEEL(p) = B_WHEEL*(N_WHEEL_FT*RPS_WHEEL_FT + N_WHEEL_RE*RPS_WHEEL_RE);	%calc wheel drag force (lbs)
-	   F_DRAG_WHEEL(p) = max(F_DRAG_WHEEL(p),F_DRAG_WHEEL_MIN);									%use minimum wheel rolling resistance for low speeds (lbs)
-		%sum up all forward (thrust) and sideways (slide) forces
+		
+        %crossbeam lift (down force) and drag
+        if SIGN_V_FRONT == 1																		%for apparent wind from bow
+            F_LIFT_BEAM(p) = N_BEAM*0.5*CL_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;		%calc total crossbeam lift force (lbs)
+            F_DRAG_BEAM(p) = N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;		%calc total crossbeam drag force (lbs)
+        else
+            F_LIFT_BEAM(p) = 0;
+            F_DRAG_BEAM(p) = -2*N_BEAM*0.5*CD_BEAM*RHO_AIR*(V_FRONT^2)*A_BEAM;	%calc total crossbeam drag force (lbs)
+        end
+        
+        %wheel drag (rolling viscous friction)
+        RPS_WHEEL_FT = vy/(pi*DIAM_WHEEL_FT);															%calc front wheel rev per sec (rps)
+        RPS_WHEEL_RE = vy/(pi*DIAM_WHEEL_RE);															%calc rear wheel rev per sec (rps)
+        F_DRAG_WHEEL(p) = B_WHEEL*(N_WHEEL_FT*RPS_WHEEL_FT + N_WHEEL_RE*RPS_WHEEL_RE);	%calc wheel drag force (lbs)
+        F_DRAG_WHEEL(p) = max(F_DRAG_WHEEL(p),F_DRAG_WHEEL_MIN);									%use minimum wheel rolling resistance for low speeds (lbs)
+		
+        %sum up all forward (thrust) and sideways (slide) forces
 		F_THRUST(p) = F_LIFT_WING(p)*sin(BETA(p))*cos(psi)-F_DRAG_WING(p)*cos(BETA(p))-F_DRAG_BODY(p)-F_DRAG_BEAM(p)-F_DRAG_WHEEL(p);		%calc net thrust force (lbs)
 		F_SIDE(p) = F_LIFT_WING(p)*cos(BETA(p))*cos(psi)+F_DRAG_WING(p)*sin(BETA(p));						%calc sideways sliding force (lbs)
-   else																					%if vy is zero, then set all stored values to zero
-      BETA(p) = 0;
-      ALPHA(p) = 0;
-		V_APPARENT(p) = 0;
+	else																					%if vy is zero, then set all stored values to zero
+        BETA(p) = 0;
+        ALPHA(p) = 0;
+        V_APPARENT(p) = 0;
 		F_LIFT_WING(p) = 0;
 		F_DRAG_WING(p) = 0;
 		F_DRAG_BODY(p) = 0;
@@ -414,8 +451,9 @@ for p = 1:1:P													%loop for entire range of phi (all possible headings)
 		F_DRAG_WHEEL(p) = F_DRAG_WHEEL_MIN;
 		F_THRUST(p) = 0;
 		F_SIDE(p) = 0;
-   end																				%end if loop
+    end %end if loop
 end																					%end for loop
+
 %print out desired values
 REYNOLDS = RHO_AIR*C_WING*V_APPARENT/MU_AIR;								%Reynolds number
 APPARENT_WIND_SPEED_MPH = round(V_APPARENT*(360/528)/12);			%apparent wind speed (mph)
