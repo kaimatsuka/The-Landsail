@@ -55,54 +55,76 @@ close all;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %SINGLE VALUE PARAMETERS THAT REMAIN CONSTANT FOR ENTIRE SIMULATION
 %Change these values to match your vehicle's geometry and configuration
+
 %air properties and other constants
 RHO_AIR = 1.175*10^-7;					%density of air (lb*sec^2/in^4)
 MU_AIR = 2.7326*10^-8;					%viscosity of air (lb*sec/in^2)
 g = 32.2;								%gravity (ft/sec^2)
+
 %true wind speed
 % V_TRUE_MPH = 20;						%true wind velocity (mph)
 V_TRUE_MPH = 11.1847;					%true wind velocity (mph)
-
 V_TRUE = V_TRUE_MPH*(528/360)*12;   	%true wind velocity (in/sec)
+
 %wing properties (assuming symmetric section)
-N_WING = 1;								%number of wings/sails
-CD0_WING = 0.2;							%wing drag coefficient at zero angle of attack
-S_WING = 48;							%wing span (in)
-A_WING = 250;							%wing area (in^2)
-HCE = 26;								%height of wing center of effort from ground (in)
-psi_deg = 0;							%lean of mast from side stay slack (deg)
-stall_deg = 18;							%wing stall angle- normally 16-20 deg (deg)
-CL_DROP_FACTOR = 1.0;					%factor for exponetial lift dropoff after stall
-psi = psi_deg*pi/180;					%lean of mast from side stay slack (rad)
-stall = stall_deg*pi/180;				%stall angle (rad)
-ARM_WING = HCE*cos(psi);				%moment arm for rig flipping moment (in)
-C_WING = A_WING/S_WING;					%average wing chord length (in)
-AR_WING = (S_WING^2)/A_WING;			%aspect ratio
-CL_WING_MAX = 2*pi*sin(stall)/(1+2/AR_WING);		%maximum coefficient of lift before stall
+N_WING   = 1;                   %number of wings/sails
+CD0_WING = 0.2;                 %wing drag coefficient at zero angle of attack
+% S_WING   = 48;					%wing span (in) DEFAULT
+S_WING   = 24;					%wing span (in)
+% A_WING   = 250;					%wing area (in^2) DEFAULT
+A_WING   = S_WING*(6+12)/2;		%wing area (in^2)
+% HCE      = 26;					%height of wing center of effort from ground (in)
+HCE      = 10;					%height of wing center of effort from ground (in)
+psi_deg  = 0;					%lean of mast from side stay slack (deg)
+stall_deg = 18;					%wing stall angle- normally 16-20 deg (deg)
+CL_DROP_FACTOR = 1.0;			%factor for exponetial lift dropoff after stall
+
+psi = psi_deg*pi/180;           %lean of mast from side stay slack (rad)
+stall = stall_deg*pi/180;		%stall angle (rad)
+ARM_WING = HCE*cos(psi);		%moment arm for rig flipping moment (in)
+C_WING = A_WING/S_WING;			%average wing chord length (in)
+AR_WING = (S_WING^2)/A_WING;	%aspect ratio
+CL_WING_MAX = 2*pi*sin(stall)/(1+2/AR_WING);	%maximum coefficient of lift before stall
+
 %total yacht weight
-WEIGHT = 4.0;								%total vehicle weight including pilot (lb)
+% WEIGHT = 4.0;   %total vehicle weight including pilot (lb)
+WEIGHT = 3.5;   %total vehicle weight including pilot (lb)
+
 %fuselage/body properties
-AP_BODY = 10;				%total frontal fuselage projected area (in^2)
-CD_BODY = 0.5;				%vehicle fuselage drag coefficient 
-TRACK = 36;					%vehicle width/track (wheel center to center) (in)
-WHEELBASE = 48;				%vehicle wheelbase (in)- only necessary for 3 wheel vehicle
-DIST_CG = 9;				%horizontal distance from CG to rear wheels (in)- only necessary for 3 wheels
+% AP_BODY = 10;       %total frontal fuselage projected area (in^2) DEFAULT
+AP_BODY = 4.5;		%total frontal fuselage projected area (in^2)
+CD_BODY = 0.5;		%vehicle fuselage drag coefficient 
+% TRACK = 36;         %vehicle width/track (wheel center to center) (in) DEFAULT
+TRACK = 24;			%vehicle width/track (wheel center to center) (in)
+% WHEELBASE = 48;     %vehicle wheelbase (in)- only necessary for 3 wheel vehicle DEFAULT
+WHEELBASE = 36;		%vehicle wheelbase (in)- only necessary for 3 wheel vehicle
+% DIST_CG = 9;        %horizontal distance from CG to rear wheels (in)- only necessary for 3 wheels DEFAULT
+DIST_CG = 5.8;		%horizontal distance from CG to rear wheels (in)- only necessary for 3 wheels
+
 %wheel properties
 N_WHEEL = 3;				%number of wheels
 FRCT = 0.75;				%coefficient of friction between wheels and road
-DIAM_WHEEL_FT = 3.0;		%front wheel diameter (in)
-DIAM_WHEEL_RE = 4.0;		%rear wheel diameter (in)
-B_WHEEL = 0.007;			%drag coefficient of rolling wheel, per wheel (lb/(rev/sec))
-F_DRAG_WHEEL_MIN = 0.5;		%total rolling resistance at zero velocity (lbs)
+% DIAM_WHEEL_FT = 3.0;        %front wheel diameter (in) DEFAULT
+DIAM_WHEEL_FT = 2;          %front wheel diameter (in) 
+% DIAM_WHEEL_RE = 4.0;        %rear wheel diameter (in) DEFAULT
+DIAM_WHEEL_RE = 2.5;        %rear wheel diameter (in) DEFAULT
+% B_WHEEL = 0.007;            %drag coefficient of rolling wheel, per wheel (lb/(rev/sec)) DEFAULT
+B_WHEEL = 0.02;             %drag coefficient of rolling wheel, per wheel (lb/(rev/sec)) 
+% F_DRAG_WHEEL_MIN = 0.5;		%total rolling resistance at zero velocity (lbs) DEFAULT
+F_DRAG_WHEEL_MIN = 0.1;		%total rolling resistance at zero velocity (lbs)
 %for small models on wheels with bearings B_WHEEL is on the order of 0.010 lb/(rev/sec)
 %for full sized landyachts B_WHEEL is on the order of 0.10 lb/(rev/sec)
+
+% KAI'S UPDATE INCORPORATED TO HERE
+
 %crossbeam properties (lift-drag relations are for a symmetric naca section)
-W_BEAM = 36;								%width of crossbeam available for generating down force (in)
-T_BEAM = 0.5;								%maximum thickness of crossbeam wing section (in)
-C_BEAM = 3.0;								%average crossbeam chord length (in)
-A_BEAM = C_BEAM*W_BEAM;					%foil surface area per crossbeam (in^2)
-AP_BEAM = T_BEAM*W_BEAM;				%projected frontal beam area (in^2)
-AR_BEAM = (W_BEAM^2)/A_BEAM;			%aspect ratio of crossbeam
+W_BEAM = 36;					%width of crossbeam available for generating down force (in)
+T_BEAM = 0.5;					%maximum thickness of crossbeam wing section (in)
+C_BEAM = 3.0;					%average crossbeam chord length (in)
+A_BEAM = C_BEAM*W_BEAM;			%foil surface area per crossbeam (in^2)
+AP_BEAM = T_BEAM*W_BEAM;		%projected frontal beam area (in^2)
+AR_BEAM = (W_BEAM^2)/A_BEAM;	%aspect ratio of crossbeam
+
 %relations for symmetric airfoil crossbeam with constant angle of attack
 gamma_deg = 0;												%crossbeam angle of attack for generating down force (deg)
 gamma = gamma_deg*pi/180;								%crossbeam angle of attack for generating down force (rad)
@@ -156,7 +178,7 @@ T = N_theta+1;								%number of loops to be made for varying theta
 %BEGIN MAIN PROGRAM LOOP THROUGH ALL VALUES OF PHI
 for p = 1:1:P		%loop for entire range of phi (all possible headings)
 
-    Steps_Remaining = P-p+1		%display number of steps remaining in loop to track progress
+%     Steps_Remaining = P-p+1		%display number of steps remaining in loop to track progress
 	phi = PHI(p);				%lookup value phi for this loop (rad)
     t = 1;						%initialize t counting variable
 
@@ -297,6 +319,7 @@ RHO_MAX = 3*ceil(max(V_LIMIT_MPH)/3);				%get maximum radius in whole numbers di
 
 MP = 1;												%subplot dimension
 NP = 1;												%subplot dimension
+
 figure()
 subplot(MP,NP,1),polar(0,RHO_MAX);					%create polar plot with whole number scale
 subplot(MP,NP,1),hold;								%hold plot so data can be plotted
@@ -318,6 +341,7 @@ THETA_TOP_SPEED_DEG = round(THETA_TOP_SPEED_DEG)	%round and print theta for TOP 
 %BEGIN POST LOOP CALCULATIONS FOR STORING & DISPLAYING OTHER RELEVANT INFO
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 %CALCULATE APPROXIMATE TIME REQUIRED TO REACH 95% of TOP SPEED IGNORING SLIP/FLIP CRITERIA
 phi = PHI_TOP_SPEED_RAD;		%heading for top speed
 theta = THETA_TOP_SPEED_RAD;	%wing angle at top speed
@@ -467,15 +491,14 @@ PHI_DEG = PHI*180/pi;															%convert PHI to degrees
 ALPHA_DEG = ALPHA*180/pi;														%convert ALPHA to degrees
 BETA_DEG = BETA*180/pi;															%convert BETA to degrees
 THETA_MAX_DEG = THETA_MAX*180/pi;											%convert THETA_MAX to degrees
+
 %plot angular info (change NP to 2 to use this plot)
-%subplot(MP,NP,2),plot(PHI_DEG,BETA_DEG,'k');							%plot apparent wind angle v. phi
-%subplot(MP,NP,2),hold;															%hold plot
-%subplot(MP,NP,2),plot(PHI_DEG,THETA_MAX_DEG,'b');						%plot wing trim angle angle v. phi
-%subplot(MP,NP,2),plot(PHI_DEG,ALPHA_DEG,'r');							%plot angle of attack wind angle v. phi
-%subplot(MP,NP,2),title('BETA, THETA MAX & ALPHA');					%title plot
-%subplot(MP,NP,2),hold;															%hold plot
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%subplot(MP,NP,2),plot(PHI_DEG,BETA_DEG,'k');				%plot apparent wind angle v. phi
+%subplot(MP,NP,2),hold;										%hold plot
+%subplot(MP,NP,2),plot(PHI_DEG,THETA_MAX_DEG,'b');			%plot wing trim angle angle v. phi
+%subplot(MP,NP,2),plot(PHI_DEG,ALPHA_DEG,'r');				%plot angle of attack wind angle v. phi
+%subplot(MP,NP,2),title('BETA, THETA MAX & ALPHA');			%title plot
+%subplot(MP,NP,2),hold;										%hold plot
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %END OF PROGRAM
