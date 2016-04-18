@@ -1,15 +1,3 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%This Matlab script was created by:
-%Kristopher Seluga, USA www.rclandsailing.com copyright 2002
-%To run this program you must have Matlab by MathWorks Inc.
-%Place this file in Matlab/bin directory and type "landsail" at the prompt to execute
-%If you have comments or questions please write to kseluga@rclandsailing.com
-%Also, if you use this program to simulate an actual model or full sized landyacht
-%please send feedback on its usefulness and how the predictions compare to observations
-%so that the algorithm may be validated and improved.  
-%The author makes no claims to the accuracy the results of this program.
-%Thank you and enjoy.  
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %This script finds the maximum velocity vs heading of a landyacht based on:
 %1. True wind speed
 %2. Symmetric wing Lift/Drag correlations
@@ -69,11 +57,11 @@ V_TRUE = V_TRUE_MPH*(528/360)*12;   	%true wind velocity (in/sec)
 %wing properties (assuming symmetric section)
 N_WING   = 1;                   %number of wings/sails
 CD0_WING = 0.2;                 %wing drag coefficient at zero angle of attack
-% S_WING   = 48;					%wing span (in) DEFAULT
+% S_WING   = 48;            	  %wing span (in) DEFAULT
 S_WING   = 24;					%wing span (in)
-% A_WING   = 250;					%wing area (in^2) DEFAULT
+% A_WING   = 250;				  %wing area (in^2) DEFAULT
 A_WING   = S_WING*(6+12)/2;		%wing area (in^2)
-% HCE      = 26;					%height of wing center of effort from ground (in)
+% HCE      = 26;				%height of wing center of effort from ground (in)
 HCE      = 10;					%height of wing center of effort from ground (in)
 psi_deg  = 0;					%lean of mast from side stay slack (deg)
 stall_deg = 18;					%wing stall angle- normally 16-20 deg (deg)
@@ -115,21 +103,19 @@ F_DRAG_WHEEL_MIN = 0.1;		%total rolling resistance at zero velocity (lbs)
 %for small models on wheels with bearings B_WHEEL is on the order of 0.010 lb/(rev/sec)
 %for full sized landyachts B_WHEEL is on the order of 0.10 lb/(rev/sec)
 
-% KAI'S UPDATE INCORPORATED TO HERE
-
 %crossbeam properties (lift-drag relations are for a symmetric naca section)
-W_BEAM = 36;					%width of crossbeam available for generating down force (in)
-T_BEAM = 0.5;					%maximum thickness of crossbeam wing section (in)
-C_BEAM = 3.0;					%average crossbeam chord length (in)
+W_BEAM = 24;					%width of crossbeam available for generating down force (in)
+T_BEAM = 0.4;					%maximum thickness of crossbeam wing section (in)
+C_BEAM = 2.0;					%average crossbeam chord length (in)
 A_BEAM = C_BEAM*W_BEAM;			%foil surface area per crossbeam (in^2)
 AP_BEAM = T_BEAM*W_BEAM;		%projected frontal beam area (in^2)
 AR_BEAM = (W_BEAM^2)/A_BEAM;	%aspect ratio of crossbeam
 
 %relations for symmetric airfoil crossbeam with constant angle of attack
-gamma_deg = 0;												%crossbeam angle of attack for generating down force (deg)
-gamma = gamma_deg*pi/180;								%crossbeam angle of attack for generating down force (rad)
-CD0_BEAM = 0.10;											%crossbeam drag coefficient at zero angle of attack
-CL_BEAM = 2*pi*sin(gamma)/(1+2/AR_BEAM);			%crossbeam coefficient of lift
+gamma_deg = 0;                                  %crossbeam angle of attack for generating down force (deg)
+gamma = gamma_deg*pi/180;                       %crossbeam angle of attack for generating down force (rad)
+CD0_BEAM = 0.10;								%crossbeam drag coefficient at zero angle of attack
+CL_BEAM = 2*pi*sin(gamma)/(1+2/AR_BEAM);		%crossbeam coefficient of lift
 CD_BEAM = CD0_BEAM+((CL_BEAM^2)/(pi*AR_BEAM));	%crossbeam coefficient of drag
 %END OF YACHT DATA ENTRY
 
@@ -138,12 +124,12 @@ CD_BEAM = CD0_BEAM+((CL_BEAM^2)/(pi*AR_BEAM));	%crossbeam coefficient of drag
 %CG/BEAM moment arm for righting moment calculation
 if N_WHEEL == 4	%for a 4 wheeled symmetric yacht (track front = track rear)
 
-    N_WHEEL_FT = 2;							%two front wheels
-    N_WHEEL_RE = 2;							%two rear wheels
-    zeta = 0;								%angle between flipping force and F_SIDE is zero (rad)
-    ARM_CG = TRACK/2;						%cg moment arm for righting moment (in)
-    ARM_BEAM = TRACK/2;						%beam moment arm for righting moment (in)
-    N_BEAM = 2;								%number of crossbeams for down force generation (probably has 2 crossbeams)
+    N_WHEEL_FT = 2;         %two front wheels
+    N_WHEEL_RE = 2;			%two rear wheels
+    zeta = 0;				%angle between flipping force and F_SIDE is zero (rad)
+    ARM_CG = TRACK/2;		%cg moment arm for righting moment (in)
+    ARM_BEAM = TRACK/2;		%beam moment arm for righting moment (in)
+    N_BEAM = 2;				%number of crossbeams for down force generation (probably has 2 crossbeams)
 
 elseif N_WHEEL == 3	%for a 3 wheeled symmetric yacht (2 wheels in rear)
 
@@ -153,7 +139,28 @@ elseif N_WHEEL == 3	%for a 3 wheeled symmetric yacht (2 wheels in rear)
     ARM_CG = (WHEELBASE-DIST_CG)*sin(zeta);	%cg moment arm for righting moment (in)
     ARM_BEAM = (TRACK/2)*cos(zeta);			%beam moment arm for righting moment (in)
     N_BEAM = 1;								%number of crossbeams for down force generation (rear crossbeam only)
-
+    
+    % plot top down view
+    figure()
+    h(1) = plot([0 WHEELBASE], [0 0],'b','LineWidth',5); % plot wheel base
+    hold on, grid on,
+    h(2) = plot([WHEELBASE WHEELBASE], [-TRACK/2 TRACK/2],'b','LineWidth',5);
+    h(3) = plot([WHEELBASE-DIST_CG],0,'rx','MarkerSize',10,'LineWidth',3);
+    xlabel('X (in)'), ylabel('Y (in)')
+    title('Top Down View of Car and CG location')
+    legend([h(1), h(3)],'Base','CG','location','best')
+    axis('equal')
+    clear h;
+    
+    % plot side view
+    figure()
+    h(1) = plot([0 WHEELBASE], [DIAM_WHEEL_FT DIAM_WHEEL_RE/2],'b','LineWidth',5); % plot wheel base (approximate length)
+    hold on, grid on,
+    h(2) = circle(0,DIAM_WHEEL_FT/2,DIAM_WHEEL_FT/2); % draw front wheel
+    h(3) = circle(WHEELBASE,DIAM_WHEEL_RE/2,DIAM_WHEEL_RE/2); % draw rear wheel
+    title('Side View of Car')
+    axis('equal')
+    clear h;
 end
 
 %main program loop parameters/starting values
@@ -202,7 +209,7 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
         SIGN_V_FRONT = cos(beta)/abs(cos(beta));						%direction of front component of apparent wind (+1 from bow, -1 from stern)
    	    
         %wing lift and drag with rough approximation to lift drop off after stall
-        if alpha > stall	%if angle of attack is greater than stall angle
+        if alpha > stall %if angle of attack is greater than stall angle
             CL_WING = (CL_WING_MAX*exp(stall))*exp(-CL_DROP_FACTOR*alpha);  %calc reduced wing lift coefficient
             CD_WING = CD0_WING+((CL_WING^2)/(pi*AR_WING));				    %calc wing drag coefficient for this angle of attack
         else %if angle of attack is less than stall angle
@@ -211,10 +218,16 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
         end	%end if loop
         
         AP_WING = A_WING*(1-((1-cos(psi))*alpha)/(pi/2));	%linear approximation to adjust effective wing area based on alpha and psi (in^2)
+        
         %NOTE: when alpha is zero, AP_WING = A_WING, if alpha is 90 deg, AP_WING = A_WING*cos(psi)
         %this leads to the linear approximation: AP_WING = A_WING*(1-((1-cos(psi))*alpha)/(pi/2));
         F_LIFT_WING = N_WING*0.5*CL_WING*RHO_AIR*(V_APPARENT^2)*AP_WING;	%calc total wing lift force (lbs)
         F_DRAG_WING = N_WING*0.5*CD_WING*RHO_AIR*(V_APPARENT^2)*AP_WING;	%calc total wing drag force (lbs)
+        %^^ NOT SURE WHY MULTIPLIED BY AP_WING - KAI
+        % DO YOU GET SAME RESULT BY CODE BELOW?        
+        %  F_LIFT_WING = N_WING*0.5*CL_WING*RHO_AIR*(V_APPARENT^2)*A_WING;	%calc total wing lift force (lbs)
+        %  F_DRAG_WING = N_WING*0.5*CD_WING*RHO_AIR*(V_APPARENT^2)*A_WING;	%calc total wing drag force (lbs)
+
         %yacht/fuselage drag (not including crossbeams)
         F_DRAG_BODY = SIGN_V_FRONT*0.5*CD_BODY*RHO_AIR*(V_FRONT^2)*AP_BODY;	%calc fuselage drag force (lbs)
         
@@ -246,8 +259,8 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
     %END OF ALL FORCE AND MOMENT CALCULATIONS FOR THIS LOOP
     
     %scale velocity step change for next loop
-    X = 10;													%scale factor for calculating dv
-    dv = X*abs(F_THRUST);								%scale velocity change by F_THRUST (if X is too large loop becomes unstable)
+    X = 10;						%scale factor for calculating dv
+    dv = X*abs(F_THRUST);		%scale velocity change by F_THRUST (if X is too large loop becomes unstable)
 		
         %perform slip criteria calculations
   		if F_SIDE > F_FRICT	%if side sliding force from rig exceeds available friction force
@@ -311,9 +324,9 @@ for j= 1:1:P-1							%loop through all of matrix V_MAX
 end										%end for loop
 
 THETA_TOP_SPEED_RAD = THETA_MAX(J);					%store theta that corresponds to TOP_SPEED_MPH (rad)
-PHI_TOP_SPEED_RAD = PHI(J);							%store phi that corresponds to TOP_SPEED_MPH (rad)
+PHI_TOP_SPEED_RAD   = PHI(J);						%store phi that corresponds to TOP_SPEED_MPH (rad)
 THETA_TOP_SPEED_DEG = THETA_TOP_SPEED_RAD*180/pi;	%convert to degrees (deg)
-PHI_TOP_SPEED_DEG = PHI_TOP_SPEED_RAD*180/pi;		%convert to degrees (deg)
+PHI_TOP_SPEED_DEG   = PHI_TOP_SPEED_RAD*180/pi;     %convert to degrees (deg)
 %plot velocity results in polar coordinates
 RHO_MAX = 3*ceil(max(V_LIMIT_MPH)/3);				%get maximum radius in whole numbers divisible by 3
 
@@ -336,6 +349,17 @@ TOP_SPEED_MPH = round(TOP_SPEED_MPH)				%round and print maximum velocity (mph)
 PHI_TOP_SPEED_DEG = round(PHI_TOP_SPEED_DEG)		%round and print phi for TOP SPEED (deg)
 THETA_TOP_SPEED_DEG = round(THETA_TOP_SPEED_DEG)	%round and print theta for TOP SPEED (deg)
 
+
+%calculate best angle to move forward (assume no slipping or tipping)
+d = 14; %(ft) course length
+T_COURSE = d*12./(V_LIMIT.*cos(PHI));
+
+figure()
+plot(PHI*180/pi,T_COURSE), hold on, grid on
+title('Course Completion Time vs Heading')
+xlabel('Heading Angle (deg)'), ylabel('time(sec)')
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %END MAIN PROGRAM
 %BEGIN POST LOOP CALCULATIONS FOR STORING & DISPLAYING OTHER RELEVANT INFO
@@ -352,7 +376,7 @@ time = 0;						%start at time = zero
 
 while vy < 0.95*TOP_SPEED_IN_SEC & time < TIME_MAX	%keep looping until vy is 95% of top speed
 	
-    if V_TRUE*cos(phi) + vy > 0																	%if apparent wind is from bow
+    if V_TRUE*cos(phi) + vy > 0		%if apparent wind is from bow
 		beta = atan((V_TRUE*sin(phi))/(vy+V_TRUE*cos(phi)));								%calc beta for beta < pi/2 (rad)
     else																									%if apparent wind is from stern
 	   beta = atan((V_TRUE*sin(phi-(pi/2))-vy)/(V_TRUE*cos(phi-(pi/2))))+pi/2;		%calc beta for beta > pi/2 (rad)
