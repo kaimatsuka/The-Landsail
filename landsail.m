@@ -94,7 +94,7 @@ H_CG = 2;           %height of CG from ground
 
 %wheel properties
 N_WHEEL = 3;				%number of wheels
-FRCT = 0.75;				%coefficient of friction between wheels and road
+FRCT = 0.6745;				%coefficient of friction between wheels and road
 % DIAM_WHEEL_FT = 3.0;        %front wheel diameter (in) DEFAULT
 DIAM_WHEEL_FT = 2;          %front wheel diameter (in) 
 % DIAM_WHEEL_RE = 4.0;        %rear wheel diameter (in) DEFAULT
