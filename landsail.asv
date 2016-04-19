@@ -257,12 +257,12 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
         F_THRUST = F_LIFT_WING*sin(beta)*cos(psi)-F_DRAG_WING*cos(beta)-F_DRAG_BODY-F_DRAG_BEAM-F_DRAG_WHEEL;	%calc net thrust force (lbs)
     
         %SLIP/FLIP required quantities (righting/flipping moment and side friction)
-        F_DOWN = WEIGHT + F_LIFT_BEAM + F_LIFT_WING*sin(psi);   %total down force from crossbeam and wing (lb)
+        F_DOWN = WEIGHT + F_LIFT_BEAM + F_LIFT_WING*sin(psi);	%total down force from crossbeam and wing (lb)
         M_RIGHT = WEIGHT*ARM_CG + F_LIFT_BEAM*ARM_BEAM ...
-                  + F_LIFT_WING*sin(psi)*ARM_CE;				%available righting moment (in*lb)
-        F_FLIP = F_SIDE*cos(zeta) + F_THRUST*sin(zeta);			%component of rig force perpendicular to supporing wheels (lbs)
-        M_FLIP = F_FLIP*ARM_WING;								%flipping moment from rig (in*lb)
-        F_FRICT = F_DOWN*FRCT;									%total available sideways friction force (lbs)
+                  + F_LIFT_WING*sin(psi)*ARM_CE;				 %available righting moment (in*lb)
+        F_FLIP = F_SIDE*cos(zeta) + F_THRUST*sin(zeta);				%component of rig force perpendicular to supporing wheels (lbs)
+        M_FLIP = F_FLIP*ARM_WING;									%flipping moment from rig (in*lb)
+        F_FRICT = F_DOWN*FRCT;										%total available sideways friction force (lbs)
         
         A_CENTRI = vy^2/TURN_RADIUS; %centrifugal acceleration(in/sec^2)
         A_CENTRI_FPS = A_CENTRI/12;
