@@ -314,7 +314,7 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
      		end 	  				%end thrust check if loop
         else %if yacht velocity or angle of attack is not positive
      		VY(t) = 0;				%assign this velocity to zero (do not keep track of negative velocities)
-            AY(t) = ay;             %store final value of vehicle acceleration from this loop (in/sec^2)
+            AY(t) = 0;             %store final value of vehicle acceleration from this loop (in/sec^2)
             t = t+1;				%increment t to calculate vehicle speed for next theta
             vy = vy0;				%reset initial velocity guess
             ay = ay0;
@@ -331,6 +331,7 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
     for z = 1:1:T %loop through entire matrix for each theta
  		if (SLIP(z) + FLIP(z) +FLIP_TURN(z) > 0)	%if FLIP or SLIP = 1 (yes)
   	  		VY(z) = 0;	%set this velocity element to zero
+            AY(z) = 0;  %set this acceleration element to zero
      	end	%end if loop
     end	%end for loop
     
