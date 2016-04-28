@@ -61,7 +61,7 @@ N_WING   = 1;                   %number of wings/sails
 CD0_WING = 0.2;                 %wing drag coefficient at zero angle of attack
 S_WING   = 24;					%wing span (in)
 tip_chord = 6;                  %(in)
-root_chord = 18;                %(in)
+root_chord = 12;                %(in)
 A_WING   = S_WING*(tip_chord + root_chord)/2;		%wing area (in^2)
 %HCE      = 13.43;					%height of wing center of effort from ground (in) 
 Sail_Ground_Clearance = 2.7633; %in
@@ -110,8 +110,9 @@ delta = atan2(DIST_CG,TURN_RADIUS);
 % ^^ angle between rear beam and the line connecting center of
 %    turning radius and CG
 
+Rolling_fric_coeff = 0.05112;
 % F_DRAG_WHEEL_MIN = 0.5;		%total rolling resistance at zero velocity (lbs) DEFAULT
-F_DRAG_WHEEL_MIN = 0.1;		%total rolling resistance at zero velocity (lbs)
+F_DRAG_WHEEL_MIN = Rolling_fric_coeff * WEIGHT;		%total rolling resistance at zero velocity (lbs)
 %for small models on wheels with bearings B_WHEEL is on the order of 0.010 lb/(rev/sec)
 %for full sized landyachts B_WHEEL is on the order of 0.10 lb/(rev/sec)
 
