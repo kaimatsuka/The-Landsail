@@ -80,10 +80,10 @@ CD_BEAM = CD0_BEAM+((CL_BEAM^2)/(pi*AR_BEAM));	%crossbeam coefficient of drag
 N_BEAM = 1;								%number of crossbeams for down force generation (rear crossbeam only)
 N_WHEEL_FT = 1;							%one front wheel
 N_WHEEL_RE = 2;							%two rear wheels
-zeta = atan((TRACK/2)/WHEELBASE);		%angle made between front wheel and each rear wheel (rad)
-ARM_CG = (WHEELBASE-DIST_CG)*sin(zeta);	%cg moment arm for righting moment (in)
-ARM_CE = (WHEELBASE-DIST_CE)*sin(zeta); %CE moment arm for righting moment (in)
-ARM_BEAM = (TRACK/2)*cos(zeta);			%beam moment arm for righting moment (in)
+zeta_ = atan((TRACK/2)/WHEELBASE);		%angle made between front wheel and each rear wheel (rad)
+ARM_CG = (WHEELBASE-DIST_CG)*sin(zeta_);	%cg moment arm for righting moment (in)
+ARM_CE = (WHEELBASE-DIST_CE)*sin(zeta_); %CE moment arm for righting moment (in)
+ARM_BEAM = (TRACK/2)*cos(zeta_);			%beam moment arm for righting moment (in)
 
 DIST = 14;
 %END OF YACHT DATA ENTRY

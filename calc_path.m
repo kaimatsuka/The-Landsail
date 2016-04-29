@@ -81,13 +81,13 @@ for p = 1:1:P		%loop for entire range of phi (all possible headings)
         F_DOWN = WEIGHT + F_LIFT_BEAM + F_LIFT_WING*sin(psi);   %total down force from crossbeam and wing (lb)
         M_RIGHT = WEIGHT*ARM_CG + F_LIFT_BEAM*ARM_BEAM ...
                   + F_LIFT_WING*sin(psi)*ARM_CE;				%available righting moment (in*lb)
-        F_FLIP = F_SIDE*cos(zeta) + F_THRUST*sin(zeta);			%component of rig force perpendicular to supporing wheels (lbs)
+        F_FLIP = F_SIDE*cos(zeta_) + F_THRUST*sin(zeta_);			%component of rig force perpendicular to supporing wheels (lbs)
         M_FLIP = F_FLIP*ARM_WING;								%flipping moment from rig (in*lb)
         F_FRICT = F_DOWN*FRCT;									%total available sideways friction force (lbs)
         
         A_CENTRI = vy0^2/TURN_RADIUS; %centrifugal acceleration(in/sec^2)
         A_CENTRI_FPS = A_CENTRI/12;
-        M_FLIP_TURN = F_FLIP*ARM_WING+MASS*A_CENTRI_FPS*H_CG*cos(abs(zeta-delta));
+        M_FLIP_TURN = F_FLIP*ARM_WING+MASS*A_CENTRI_FPS*H_CG*cos(abs(zeta_-delta));
         %END OF ALL FORCE AND MOMENT CALCULATIONS FOR THIS LOOP
         
         %perform slip criteria calculations
