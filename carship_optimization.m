@@ -43,17 +43,20 @@ close all;
 PLOT_ON = 0;    % TURN ON PLOTS IF EQUAL 1
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-load_parameters;
+load_base_parameters;
+load_variation_parameters;
+
+calc_random_car;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 if PLOT_ON
     % plot top down view
     figure()
-    h(1) = plot([0 WHEELBASE], [0 0],'b','LineWidth',5); % plot wheel base
+    h(1) = plot([0 car.WHEELBASE], [0 0],'b','LineWidth',5); % plot wheel base
     hold on, grid on,
-    h(2) = plot([WHEELBASE WHEELBASE], [-TRACK/2 TRACK/2],'b','LineWidth',5);
-    h(3) = plot([WHEELBASE-DIST_CG],0,'rx','MarkerSize',10,'LineWidth',3);
+    h(2) = plot([car.WHEELBASE car.WHEELBASE], [-car.TRACK/2 car.TRACK/2],'b','LineWidth',5);
+    h(3) = plot([car.WHEELBASE-DIST_CG],0,'rx','MarkerSize',10,'LineWidth',3);
     xlabel('X (in)'), ylabel('Y (in)')
     title('Top Down View of Car and CG location')
     legend([h(1), h(3)],'Base','CG','location','best')
@@ -62,7 +65,7 @@ if PLOT_ON
 
     % plot side view
     figure()
-    h(1) = plot([0 WHEELBASE], [DIAM_WHEEL_FT DIAM_WHEEL_RE/2],'b','LineWidth',5); % plot wheel base (approximate length)
+    h(1) = plot([0 car.WHEELBASE], [DIAM_WHEEL_FT DIAM_WHEEL_RE/2],'b','LineWidth',5); % plot wheel base (approximate length)
     hold on, grid on,
     h(2) = circle(0,DIAM_WHEEL_FT/2,DIAM_WHEEL_FT/2); % draw front wheel
     h(3) = circle(WHEELBASE,DIAM_WHEEL_RE/2,DIAM_WHEEL_RE/2); % draw rear wheel
@@ -78,7 +81,7 @@ dv = 0;                 %initial value for velocity change (in/sec)
 vy0 = 0;                %initial value for vehicle velocity (in/sec)
 v0 = vy0;               %assign initial value to vy (in/sec)
 F_THRUST = 1;           %initial non-zero value for thrust force (lbs)
-ay0 = F_THRUST/MASS;    %initial value for acceleration (in/sec^2)
+ay0 = F_THRUST/car.MASS;    %initial value for acceleration (in/sec^2)
 a = ay0;                %assign initial value to ay (in/sec^2)
 y0 = 24;                %initial race track position (in)
 y = y0;                 %assign initial position to y (in)
@@ -125,9 +128,9 @@ j = 1;
 for t = 1:total_time/dt
     
     if RIGHT == 1
-        [a(t),v(t),theta(t),phi(t)] = calc_path(v0,dt,psi);
+        [a(t),v(t),theta(t),phi(t)] = calc_path(v0,dt,car);
     else
-        [a(t),v(t),theta(t),phi(t)] = calc_path(v0,dt,psi);
+        [a(t),v(t),theta(t),phi(t)] = calc_path(v0,dt,car);
         theta(t) = -theta(t);
         phi(t)   = -phi(t);
     end
@@ -201,7 +204,7 @@ for t = 1:total_time/dt
     else
         j = j+1;
     end
-end
+end 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %END MAIN PROGRAM

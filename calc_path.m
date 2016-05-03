@@ -1,6 +1,40 @@
-function [ay,vy,theta,phi] = calc_path(vy0,dt,psi)
+function [ay,vy,theta,phi] = calc_path(vy0,dt,car)
 
-load_parameters;
+% dereference car structure
+psi = car.psi;
+V_TRUE = car.V_TRUE;
+stall = car.stall;
+AR_WING = car.AR_WING;
+CD0_WING = car.CD0_WING;
+A_WING = car.A_WING;
+N_WING = car.N_WING;
+RHO_AIR = car.RHO_AIR;
+CD_BODY = car.CD_BODY;
+AP_BODY = car.AP_BODY;
+N_BEAM = car.N_BEAM;
+CL_BEAM = car.CL_BEAM;
+A_BEAM = car.A_BEAM;
+CD_BEAM = car.CD_BEAM;
+DIAM_WHEEL_FT = car.DIAM_WHEEL_FT;
+DIAM_WHEEL_RE = car.DIAM_WHEEL_RE;
+B_WHEEL = car.B_WHEEL;
+N_WHEEL_FT = car.N_WHEEL_FT;						%one front wheel
+N_WHEEL_RE = car.N_WHEEL_RE;						%two rear wheels
+F_DRAG_WHEEL_MIN = car.F_DRAG_WHEEL_MIN;
+MASS = car.MASS;
+WEIGHT = car.WEIGHT;
+ARM_CG = car.ARM_CG;
+ARM_BEAM = car.ARM_BEAM;
+ARM_CE = car.ARM_CE;
+ARM_WING = car.ARM_WING;
+FRCT = car.FRCT;
+zeta_ = car.zeta_;
+TURN_RADIUS = car.TURN_RADIUS;
+H_CG = car.H_CG;
+delta = car.delta;
+CL_WING_MAX = car.CL_WING_MAX;
+CL_DROP_FACTOR = car.CL_DROP_FACTOR;
+
 %define matrices PHI and THETA for main program loops
 %for smoother plot make N_phi and N_theta larger (this will make the program take longer to run)
 N_phi = 100;								%number of divisions in PHI
