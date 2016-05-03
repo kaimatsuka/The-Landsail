@@ -41,7 +41,9 @@ clear all;	%clear memory before running program
 close all;
 
 PLOT_ON = 0;    % TURN ON PLOTS IF EQUAL 1
-PLOT_TRAJ = 1;
+PLOT_TRAJ = 0;
+N_ITERATIONS = 1;
+NUM_SUCCESS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load_base_parameters;
@@ -88,128 +90,146 @@ y0 = 24;                %initial race track position (in)
 y = y0;                 %assign initial position to y (in)
 x0 = -24;               %initial x-race track position (in)
 x = x0;                 %assign initial position to x (in)
-
+TOTAL_TIME_BASE = 1000;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+display('Begin Monte Carlo Optimization Process');
+for jj = 1:N_ITERATIONS
 
-dt = 0.25;
-total_time = 5*60;
-
-if PLOT_TRAJ
-    fig = figure();
-    subplot(2,3,[1,4])
-        hold on; box on; grid on;
-        plot([-2 2],[y0,y0]/12,'g','linewidth',4)
-        plot([-2 2],[DIST,DIST],'r','linewidth',4)
-        axis([-2 2 0 DIST+1]);
-        xlabel('x (ft)','fontsize',10);   ylabel('y (ft)','fontsize',10);
-        title('Race Track Position','fontsize',12);
-    subplot(2,3,2)
-        hold on; box on; grid on;
-        axis([0 25 -3.5 3.5]);
-        xlabel('time (s)','fontsize',10); ylabel('v (ft/s)','fontsize',10);
-        title('Velocity vs. Time','fontsize',12);
-    subplot(2,3,3)
-        hold on; box on; grid on;
-        axis([0 25 -0.5 0.5]);
-        xlabel('time (s)','fontsize',10); ylabel('a (ft/s^2)','fontsize',10);
-        title('Acceleration vs. Time','fontsize',12);
-    subplot(2,3,5)
-        hold on; box on; grid on;
-        axis([0 25 -90 90]);
-        xlabel('time (s)','fontsize',10); ylabel('\theta (deg)','fontsize',10);
-        title('Mast Deflection vs. Time','fontsize',12);
-    subplot(2,3,6)
-        hold on; box on; grid on;
-        axis([0 25 -90 90]);
-        xlabel('time (s)','fontsize',10); ylabel('\phi (deg)','fontsize',10);
-        title('Heading Angle vs. Time','fontsize',12);
-end
-
-RIGHT = 1;  % GOES RIGHT FIRST; if == 1, right; if == 0, left (negative heading and theta angles)
-j = 1;
-for t = 1:total_time/dt
-    
-    if RIGHT == 1
-        [a(t),v(t),theta(t),phi(t)] = calc_path(v0,dt,car);
-    else
-        [a(t),v(t),theta(t),phi(t)] = calc_path(v0,dt,car);
-        theta(t) = -theta(t);
-        phi(t)   = -phi(t);
+    if mod(jj,10) == 1
+        fprintf('.');
+    end
+    if mod(jj,100) == 1
+       fprintf(' %d iterations\n',jj) 
     end
     
-    d(t)  = (0.5*a(t)*dt^2)+(v(t)*dt);
-    x(t)  = (d(t)*sin(phi(t)))+x0;
-    y(t)  = (d(t)*cos(phi(t)))+y0;
-    vx(t) = (v(t)*sin(phi(t)));
-    vy(t) = (v(t)*cos(phi(t)));
-    ax(t) = (a(t)*sin(phi(t)));
-    ay(t) = (a(t)*cos(phi(t)));
+    calc_random_car;
+    
+    dt = 0.25;
+    total_time = 5*60;
+
     if PLOT_TRAJ
+        fig = figure();
         subplot(2,3,[1,4])
-            pos_plot(t) = plot(x(t)/12,y(t)/12,'x','markersize',12);
-            if(t>1)
-                delete(pos_plot(t-1));
-                plot(x(1:t-1)/12,y(1:t-1)/12,'-k','linewidth',2);
-            end
+            hold on; box on; grid on;
+            plot([-2 2],[y0,y0]/12,'g','linewidth',4)
+            plot([-2 2],[DIST,DIST],'r','linewidth',4)
+            axis([-2 2 0 DIST+1]);
+            xlabel('x (ft)','fontsize',10);   ylabel('y (ft)','fontsize',10);
+            title('Race Track Position','fontsize',12);
         subplot(2,3,2)
-            velo_plot(t) = plot((t-1)*dt,v(t)/12,'x','markersize',12);
-            velox_plot(t) = plot((t-1)*dt,vx(t)/12,'rx','markersize',8);
-            veloy_plot(t) = plot((t-1)*dt,vy(t)/12,'gx','markersize',8);
-            if(t>1)
-                delete(velo_plot(t-1));
-                delete(velox_plot(t-1));
-                delete(veloy_plot(t-1));
-                plot((1:t-1)*dt,v(1:t-1)/12,'-k','linewidth',2);
-                plot((1:t-1)*dt,vx(1:t-1)/12,'-r');
-                plot((1:t-1)*dt,vy(1:t-1)/12,'-g');
-            end
+            hold on; box on; grid on;
+            axis([0 25 -3.5 3.5]);
+            xlabel('time (s)','fontsize',10); ylabel('v (ft/s)','fontsize',10);
+            title('Velocity vs. Time','fontsize',12);
         subplot(2,3,3)
-            accel_plot(t) = plot((t-1)*dt,a(t)/12,'x','markersize',12);
-            accelx_plot(t) = plot((t-1)*dt,ax(t)/12,'rx','markersize',8);
-            accely_plot(t) = plot((t-1)*dt,ay(t)/12,'gx','markersize',8);
-            if(t>1)
-                delete(accel_plot(t-1));
-                delete(accelx_plot(t-1));
-                delete(accely_plot(t-1));
-                plot((1:t-1)*dt,a(1:t-1)/12,'-k','linewidth',2);
-                plot((1:t-1)*dt,ax(1:t-1)/12,'-r');
-                plot((1:t-1)*dt,ay(1:t-1)/12,'-g');
-            end       
+            hold on; box on; grid on;
+            axis([0 25 -0.5 0.5]);
+            xlabel('time (s)','fontsize',10); ylabel('a (ft/s^2)','fontsize',10);
+            title('Acceleration vs. Time','fontsize',12);
         subplot(2,3,5)
-            theta_plot(t) = plot((t-1)*dt,theta(t)*180/pi,'x','markersize',12);
-            if(t>1)
-                delete(theta_plot(t-1));
-                plot((1:t-1)*dt,theta(1:t-1)*180/pi,'-k','linewidth',2);
-            end
+            hold on; box on; grid on;
+            axis([0 25 -90 90]);
+            xlabel('time (s)','fontsize',10); ylabel('\theta (deg)','fontsize',10);
+            title('Mast Deflection vs. Time','fontsize',12);
         subplot(2,3,6)
-            phi_plot(t) = plot((t-1)*dt,phi(t)*180/pi,'x','markersize',12);
-            if(t>1)
-                delete(phi_plot(t-1));
-                plot((1:t-1)*dt,phi(1:t-1)*180/pi,'-k','linewidth',2);
-            end
+            hold on; box on; grid on;
+            axis([0 25 -90 90]);
+            xlabel('time (s)','fontsize',10); ylabel('\phi (deg)','fontsize',10);
+            title('Heading Angle vs. Time','fontsize',12);
     end
-    
-    if(y(t)/12 >= DIST)
-        TOTAL_TIME_SEC = (t-1)*dt
-        break;
-    end
-    
-    y0 = y(t);
-    x0 = x(t);
-    v0 = v(t);
-    drawnow;
-    
-    if ((24-x0 < x_threshold) && j >= 5)
-        RIGHT = 0;
-        j = 1;
-    elseif ((24+x0 < x_threshold) && j >= 5)
-        RIGHT = 1;
-        j = 1;
-    else
-        j = j+1;
-    end
-end 
 
+    RIGHT = 1;  % GOES RIGHT FIRST; if == 1, right; if == 0, left (negative heading and theta angles)
+    j = 1;
+    for t = 1:total_time/dt
+
+        if RIGHT == 1
+            [a(t),v(t),theta(t),phi(t)] = calc_path(v0,dt,car);
+        else
+            [a(t),v(t),theta(t),phi(t)] = calc_path(v0,dt,car);
+            theta(t) = -theta(t);
+            phi(t)   = -phi(t);
+        end
+
+        d(t)  = (0.5*a(t)*dt^2)+(v(t)*dt);
+        x(t)  = (d(t)*sin(phi(t)))+x0;
+        y(t)  = (d(t)*cos(phi(t)))+y0;
+        vx(t) = (v(t)*sin(phi(t)));
+        vy(t) = (v(t)*cos(phi(t)));
+        ax(t) = (a(t)*sin(phi(t)));
+        ay(t) = (a(t)*cos(phi(t)));
+        if PLOT_TRAJ
+            subplot(2,3,[1,4])
+                pos_plot(t) = plot(x(t)/12,y(t)/12,'x','markersize',12);
+                if(t>1)
+                    delete(pos_plot(t-1));
+                    plot(x(1:t-1)/12,y(1:t-1)/12,'-k','linewidth',2);
+                end
+            subplot(2,3,2)
+                velo_plot(t) = plot((t-1)*dt,v(t)/12,'x','markersize',12);
+                velox_plot(t) = plot((t-1)*dt,vx(t)/12,'rx','markersize',8);
+                veloy_plot(t) = plot((t-1)*dt,vy(t)/12,'gx','markersize',8);
+                if(t>1)
+                    delete(velo_plot(t-1));
+                    delete(velox_plot(t-1));
+                    delete(veloy_plot(t-1));
+                    plot((1:t-1)*dt,v(1:t-1)/12,'-k','linewidth',2);
+                    plot((1:t-1)*dt,vx(1:t-1)/12,'-r');
+                    plot((1:t-1)*dt,vy(1:t-1)/12,'-g');
+                end
+            subplot(2,3,3)
+                accel_plot(t) = plot((t-1)*dt,a(t)/12,'x','markersize',12);
+                accelx_plot(t) = plot((t-1)*dt,ax(t)/12,'rx','markersize',8);
+                accely_plot(t) = plot((t-1)*dt,ay(t)/12,'gx','markersize',8);
+                if(t>1)
+                    delete(accel_plot(t-1));
+                    delete(accelx_plot(t-1));
+                    delete(accely_plot(t-1));
+                    plot((1:t-1)*dt,a(1:t-1)/12,'-k','linewidth',2);
+                    plot((1:t-1)*dt,ax(1:t-1)/12,'-r');
+                    plot((1:t-1)*dt,ay(1:t-1)/12,'-g');
+                end       
+            subplot(2,3,5)
+                theta_plot(t) = plot((t-1)*dt,theta(t)*180/pi,'x','markersize',12);
+                if(t>1)
+                    delete(theta_plot(t-1));
+                    plot((1:t-1)*dt,theta(1:t-1)*180/pi,'-k','linewidth',2);
+                end
+            subplot(2,3,6)
+                phi_plot(t) = plot((t-1)*dt,phi(t)*180/pi,'x','markersize',12);
+                if(t>1)
+                    delete(phi_plot(t-1));
+                    plot((1:t-1)*dt,phi(1:t-1)*180/pi,'-k','linewidth',2);
+                end
+        end
+
+        if(y(t)/12 >= DIST)
+            TOTAL_TIME_SEC = (t-1)*dt;
+            break;
+        end
+
+        y0 = y(t);
+        x0 = x(t);
+        v0 = v(t);
+        drawnow;
+
+        if ((24-x0 < x_threshold) && j >= 5)
+            RIGHT = 0;
+            j = 1;
+        elseif ((24+x0 < x_threshold) && j >= 5)
+            RIGHT = 1;
+            j = 1;
+        else
+            j = j+1;
+        end
+    end 
+    
+    if TOTAL_TIME_SEC < TOTAL_TIME_BASE
+       NUM_SUCCESS = NUM_SUCCESS + 1;
+       TOTAL_TIME_BASE = TOTAL_TIME_SEC;
+       CAR_SUCCESS(NUM_SUCCESS) = car;
+       CAR_SUCCESS(NUM_SUCCESS).time = TOTAL_TIME_BASE;
+    end
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %END MAIN PROGRAM
