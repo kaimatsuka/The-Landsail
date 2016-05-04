@@ -5,11 +5,6 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-VARY_WING = 0;  % 1 is to vary parameters
-VARY_FUSE = 0;  % 0 is to not vary parameters
-
-load_variation_parameters;
-
 % WING --------------------------------------------------------------------
 
 if VARY_WING

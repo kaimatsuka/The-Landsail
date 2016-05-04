@@ -9,7 +9,7 @@
 % Wing --------------------------------------------------------------------
 
     SD.S_WING = 5;      % WING SPAN (IN)
-    SD.tip_chord = 0;   % WING TIP-CHORD (IN) (KEEP 0 IF KEEP TRIANGULAR CONFIG)
+    SD.tip_chord = 5;   % WING TIP-CHORD (IN) (KEEP 0 IF KEEP TRIANGULAR CONFIG)
     SD.root_chord = 5;  % WING ROOT-CHORD (IN)
     SD.psi_deg = 10;    % MAST LEANING ANGLE (DEG)
     

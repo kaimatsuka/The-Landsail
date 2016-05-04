@@ -40,9 +40,9 @@
 clear all;	%clear memory before running program
 close all;
 
-PLOT_ON = 0;    % TURN ON PLOTS IF EQUAL 1
-PLOT_TRAJ = 0;
-N_ITERATIONS = 1;
+VARY_WING = 1;  % 1 is to vary parameters
+VARY_FUSE = 0;  % 0 is to not vary parameters
+N_ITERATIONS = 250;
 NUM_SUCCESS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -53,94 +53,40 @@ calc_random_car;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-if PLOT_ON
-    % plot top down view
-    figure()
-    h(1) = plot([0 car.WHEELBASE], [0 0],'b','LineWidth',5); % plot wheel base
-    hold on, grid on,
-    h(2) = plot([car.WHEELBASE car.WHEELBASE], [-car.TRACK/2 car.TRACK/2],'b','LineWidth',5);
-    h(3) = plot([car.WHEELBASE-DIST_CG],0,'rx','MarkerSize',10,'LineWidth',3);
-    xlabel('X (in)'), ylabel('Y (in)')
-    title('Top Down View of Car and CG location')
-    legend([h(1), h(3)],'Base','CG','location','best')
-    axis('equal')
-    clear h;
-
-    % plot side view
-    figure()
-    h(1) = plot([0 car.WHEELBASE], [DIAM_WHEEL_FT DIAM_WHEEL_RE/2],'b','LineWidth',5); % plot wheel base (approximate length)
-    hold on, grid on,
-    h(2) = circle(0,DIAM_WHEEL_FT/2,DIAM_WHEEL_FT/2); % draw front wheel
-    h(3) = circle(WHEELBASE,DIAM_WHEEL_RE/2,DIAM_WHEEL_RE/2); % draw rear wheel
-    title('Side View of Car')
-    axis('equal')
-    clear h;
-end
-
 % INITIAL VALUES
 e = 0.050;              %error sensitivity for thrust equilibrium check (lbs)
-x_threshold = 3;        %threshold to wall before car needs to begin turn (in)
-dv = 0;                 %initial value for velocity change (in/sec)
-vy0 = 0;                %initial value for vehicle velocity (in/sec)
-v0 = vy0;               %assign initial value to vy (in/sec)
-F_THRUST = 1;           %initial non-zero value for thrust force (lbs)
-ay0 = F_THRUST/car.MASS;    %initial value for acceleration (in/sec^2)
-a = ay0;                %assign initial value to ay (in/sec^2)
-y0 = 24;                %initial race track position (in)
-y = y0;                 %assign initial position to y (in)
-x0 = -24;               %initial x-race track position (in)
-x = x0;                 %assign initial position to x (in)
-TOTAL_TIME_BASE = 1000;
+x_threshold = 4;        %threshold to wall before car needs to begin turn (in)
+TOTAL_TIME_BASE = 1000; % seconds
+dt = 0.25;              % interval of time to update accel, velo, pos (s)
+total_time = 10*60;     % total loop time (s)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 display('Begin Monte Carlo Optimization Process');
 for jj = 1:N_ITERATIONS
 
-    if mod(jj,10) == 1
+    if mod(jj,10) == 0
         fprintf('.');
     end
-    if mod(jj,100) == 1
+    if mod(jj,50) == 0
        fprintf(' %d iterations\n',jj) 
     end
     
+    % randomly vary car via Monte Carlo Iteration Process
     calc_random_car;
     
-    dt = 0.25;
-    total_time = 5*60;
-
-    if PLOT_TRAJ
-        fig = figure();
-        subplot(2,3,[1,4])
-            hold on; box on; grid on;
-            plot([-2 2],[y0,y0]/12,'g','linewidth',4)
-            plot([-2 2],[DIST,DIST],'r','linewidth',4)
-            axis([-2 2 0 DIST+1]);
-            xlabel('x (ft)','fontsize',10);   ylabel('y (ft)','fontsize',10);
-            title('Race Track Position','fontsize',12);
-        subplot(2,3,2)
-            hold on; box on; grid on;
-            axis([0 25 -3.5 3.5]);
-            xlabel('time (s)','fontsize',10); ylabel('v (ft/s)','fontsize',10);
-            title('Velocity vs. Time','fontsize',12);
-        subplot(2,3,3)
-            hold on; box on; grid on;
-            axis([0 25 -0.5 0.5]);
-            xlabel('time (s)','fontsize',10); ylabel('a (ft/s^2)','fontsize',10);
-            title('Acceleration vs. Time','fontsize',12);
-        subplot(2,3,5)
-            hold on; box on; grid on;
-            axis([0 25 -90 90]);
-            xlabel('time (s)','fontsize',10); ylabel('\theta (deg)','fontsize',10);
-            title('Mast Deflection vs. Time','fontsize',12);
-        subplot(2,3,6)
-            hold on; box on; grid on;
-            axis([0 25 -90 90]);
-            xlabel('time (s)','fontsize',10); ylabel('\phi (deg)','fontsize',10);
-            title('Heading Angle vs. Time','fontsize',12);
-    end
-
+    dv = 0;                 %initial value for velocity change (in/sec)
+    vy0 = 0;                %initial value for vehicle velocity (in/sec)
+    v0 = vy0;               %assign initial value to vy (in/sec)
+    F_THRUST = 1;           %initial non-zero value for thrust force (lbs)
+    ay0 = F_THRUST/car.MASS;    %initial value for acceleration (in/sec^2)
+    a = ay0;                %assign initial value to ay (in/sec^2)
+    y0 = 24;                %initial race track position (in)
+    y = y0;                 %assign initial position to y (in)
+    x0 = -24;               %initial x-race track position (in)
+    x = x0;                 %assign initial position to x (in)
     RIGHT = 1;  % GOES RIGHT FIRST; if == 1, right; if == 0, left (negative heading and theta angles)
     j = 1;
+
     for t = 1:total_time/dt
 
         if RIGHT == 1
@@ -151,57 +97,13 @@ for jj = 1:N_ITERATIONS
             phi(t)   = -phi(t);
         end
 
-        d(t)  = (0.5*a(t)*dt^2)+(v(t)*dt);
-        x(t)  = (d(t)*sin(phi(t)))+x0;
-        y(t)  = (d(t)*cos(phi(t)))+y0;
-        vx(t) = (v(t)*sin(phi(t)));
-        vy(t) = (v(t)*cos(phi(t)));
-        ax(t) = (a(t)*sin(phi(t)));
-        ay(t) = (a(t)*cos(phi(t)));
-        if PLOT_TRAJ
-            subplot(2,3,[1,4])
-                pos_plot(t) = plot(x(t)/12,y(t)/12,'x','markersize',12);
-                if(t>1)
-                    delete(pos_plot(t-1));
-                    plot(x(1:t-1)/12,y(1:t-1)/12,'-k','linewidth',2);
-                end
-            subplot(2,3,2)
-                velo_plot(t) = plot((t-1)*dt,v(t)/12,'x','markersize',12);
-                velox_plot(t) = plot((t-1)*dt,vx(t)/12,'rx','markersize',8);
-                veloy_plot(t) = plot((t-1)*dt,vy(t)/12,'gx','markersize',8);
-                if(t>1)
-                    delete(velo_plot(t-1));
-                    delete(velox_plot(t-1));
-                    delete(veloy_plot(t-1));
-                    plot((1:t-1)*dt,v(1:t-1)/12,'-k','linewidth',2);
-                    plot((1:t-1)*dt,vx(1:t-1)/12,'-r');
-                    plot((1:t-1)*dt,vy(1:t-1)/12,'-g');
-                end
-            subplot(2,3,3)
-                accel_plot(t) = plot((t-1)*dt,a(t)/12,'x','markersize',12);
-                accelx_plot(t) = plot((t-1)*dt,ax(t)/12,'rx','markersize',8);
-                accely_plot(t) = plot((t-1)*dt,ay(t)/12,'gx','markersize',8);
-                if(t>1)
-                    delete(accel_plot(t-1));
-                    delete(accelx_plot(t-1));
-                    delete(accely_plot(t-1));
-                    plot((1:t-1)*dt,a(1:t-1)/12,'-k','linewidth',2);
-                    plot((1:t-1)*dt,ax(1:t-1)/12,'-r');
-                    plot((1:t-1)*dt,ay(1:t-1)/12,'-g');
-                end       
-            subplot(2,3,5)
-                theta_plot(t) = plot((t-1)*dt,theta(t)*180/pi,'x','markersize',12);
-                if(t>1)
-                    delete(theta_plot(t-1));
-                    plot((1:t-1)*dt,theta(1:t-1)*180/pi,'-k','linewidth',2);
-                end
-            subplot(2,3,6)
-                phi_plot(t) = plot((t-1)*dt,phi(t)*180/pi,'x','markersize',12);
-                if(t>1)
-                    delete(phi_plot(t-1));
-                    plot((1:t-1)*dt,phi(1:t-1)*180/pi,'-k','linewidth',2);
-                end
-        end
+        d(t)  = (0.5*a(t)*dt^2)+(v(t)*dt);  % change in distance (in)
+        x(t)  = (d(t)*sin(phi(t)))+x0;      % x-coordinate (in)
+        y(t)  = (d(t)*cos(phi(t)))+y0;      % y-coordinate (in)
+        vx(t) = (v(t)*sin(phi(t)));         % x-velocity (in/s)
+        vy(t) = (v(t)*cos(phi(t)));         % y-velocity (in/s)
+        ax(t) = (a(t)*sin(phi(t)));         % x-acceleration (in/s^2)
+        ay(t) = (a(t)*cos(phi(t)));         % y-acceleration (in/s^2)
 
         if(y(t)/12 >= DIST)
             TOTAL_TIME_SEC = (t-1)*dt;
@@ -211,7 +113,6 @@ for jj = 1:N_ITERATIONS
         y0 = y(t);
         x0 = x(t);
         v0 = v(t);
-        drawnow;
 
         if ((24-x0 < x_threshold) && j >= 5)
             RIGHT = 0;
@@ -227,9 +128,38 @@ for jj = 1:N_ITERATIONS
     if TOTAL_TIME_SEC < TOTAL_TIME_BASE
        NUM_SUCCESS = NUM_SUCCESS + 1;
        TOTAL_TIME_BASE = TOTAL_TIME_SEC;
-       CAR_SUCCESS(NUM_SUCCESS) = car;
-       CAR_SUCCESS(NUM_SUCCESS).time = TOTAL_TIME_BASE;
+       CAR_SUCCESS(NUM_SUCCESS).car_prop = car;
+       CAR_SUCCESS(NUM_SUCCESS).ttl_time = TOTAL_TIME_BASE;
+       CAR_SUCCESS(NUM_SUCCESS).time_vec = (0:dt:TOTAL_TIME_BASE)';
+       CAR_SUCCESS(NUM_SUCCESS).x     = x(:);            % x-pos
+       CAR_SUCCESS(NUM_SUCCESS).y     = y(:);            % y-pos
+       CAR_SUCCESS(NUM_SUCCESS).v     = v(:);            % speed
+       CAR_SUCCESS(NUM_SUCCESS).vx    = vx(:);           % x-velo
+       CAR_SUCCESS(NUM_SUCCESS).vy    = vy(:);           % y-velo
+       CAR_SUCCESS(NUM_SUCCESS).a     = a(:);            % acceleration
+       CAR_SUCCESS(NUM_SUCCESS).ax    = ax(:);           % x-accel
+       CAR_SUCCESS(NUM_SUCCESS).ay    = ay(:);           % y-accel
+       CAR_SUCCESS(NUM_SUCCESS).theta = theta(:);        % mast deflection
+       CAR_SUCCESS(NUM_SUCCESS).phi   = phi(:);          % heading angle
     end
+    
+    clear a v theta phi d x y vx vy ax ay;
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%END MAIN PROGRAM
+display(['End Monte Carlo Optimization Process with ' num2str(NUM_SUCCESS) ' successes.']);
+%%END MONTE CARLO%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% POST MONTE CARLO ANALYSIS
+min_idx = find([CAR_SUCCESS(:).ttl_time]==min([CAR_SUCCESS(:).ttl_time]));
+FASTEST_CAR = CAR_SUCCESS(min_idx);
+display(['The fastest time is ' num2str(FASTEST_CAR.ttl_time) ' seconds.']);
+
+% PLOT VEHICLE
+plot_car(FASTEST_CAR.car_prop,DIST_CG);
+
+% PLOT TRAJECTORY
+plot_traj(FASTEST_CAR.time_vec, FASTEST_CAR.v, FASTEST_CAR.a,...
+          FASTEST_CAR.x,       FASTEST_CAR.y,...
+          FASTEST_CAR.vx,      FASTEST_CAR.vy,...
+          FASTEST_CAR.ax,      FASTEST_CAR.ay,...
+          FASTEST_CAR.theta,   FASTEST_CAR.phi);
+          
