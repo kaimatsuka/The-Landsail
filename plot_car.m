@@ -31,6 +31,16 @@ function [ ] = plot_car( car , DIST_CG)
     axis('equal')
     clear h;
 
-    
+    % plot sail
+    figure()
+    h(1) = plot([0 car.root_chord], [0 0], 'b','linewidth',5);  % plot root chord
+    hold on, grid on,
+    h(2) = plot([car.root_chord-car.tip_chord car.root_chord],[car.S_WING car.S_WING],'b','linewidth',5);
+    h(3) = plot([car.root_chord car.root_chord],[0 car.S_WING],'b','linewidth',5);
+    h(4) = plot([0 car.root_chord-car.tip_chord],[0 car.S_WING],'b','linewidth',5);
+    h(5) = plot([0 car.root_chord],[car.HCE-car.Sail_Ground_Clearance car.HCE-car.Sail_Ground_Clearance],'g','linewidth',2);
+    title('Sail Geometry')
+    axis([-1 car.root_chord+1 -1 car.S_WING+1]);
+    clear h;
 end
 

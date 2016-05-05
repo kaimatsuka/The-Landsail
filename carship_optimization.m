@@ -56,7 +56,7 @@ calc_random_car;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % INITIAL VALUES
-x_threshold = 5;        %threshold to wall before car needs to begin turn (in)
+x_threshold = 4;        %threshold to wall before car needs to begin turn (in)
 TOTAL_TIME_BASE = 1000; % seconds
 dt = 0.25;              % interval of time to update accel, velo, pos (s)
 total_time = 10*60;     % total loop time (s)
