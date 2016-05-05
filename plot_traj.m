@@ -31,22 +31,22 @@ subplot(2,3,[1,4])
     title('Race Track Position','fontsize',12);
 subplot(2,3,2)
     hold on; box on; grid on;
-    axis([0 25 -3.5 3.5]);
+    axis([0 time(end) min([v;vx;vy])/12 max([v;vx;vy])/12]);
     xlabel('time (s)','fontsize',10); ylabel('v (ft/s)','fontsize',10);
     title('Velocity vs. Time','fontsize',12);
 subplot(2,3,3)
     hold on; box on; grid on;
-    axis([0 25 -0.5 0.5]);
+    axis([0 time(end) min([a;ax;ay])/12 max([a;ax;ay])/12]);
     xlabel('time (s)','fontsize',10); ylabel('a (ft/s^2)','fontsize',10);
     title('Acceleration vs. Time','fontsize',12);
 subplot(2,3,5)
     hold on; box on; grid on;
-    axis([0 25 -90 90]);
+    axis([0 time(end) min(theta)*180/pi max(theta)*180/pi]);
     xlabel('time (s)','fontsize',10); ylabel('\theta (deg)','fontsize',10);
     title('Mast Deflection vs. Time','fontsize',12);
 subplot(2,3,6)
     hold on; box on; grid on;
-    axis([0 25 -90 90]);
+    axis([0 time(end) min(phi)*180/pi max(phi)*180/pi]);
     xlabel('time (s)','fontsize',10); ylabel('\phi (deg)','fontsize',10);
     title('Heading Angle vs. Time','fontsize',12);
 
@@ -78,9 +78,9 @@ for t = 1:length(time)
             delete(accel_plot(t-1));
             delete(accelx_plot(t-1));
             delete(accely_plot(t-1));
-            plot(time(1:t-1),a(1:t-1)/12,'-k','linewidth',2);
-            plot(time(1:t-1),ax(1:t-1)/12,'-r');
-            plot(time(1:t-1),ay(1:t-1)/12,'-g');
+            leg(1) = plot(time(1:t-1),a(1:t-1)/12,'-k','linewidth',2);
+            leg(2) = plot(time(1:t-1),ax(1:t-1)/12,'-r');
+            leg(3) = plot(time(1:t-1),ay(1:t-1)/12,'-g');
         end       
     subplot(2,3,5)
         theta_plot(t) = plot(time(t),theta(t)*180/pi,'x','markersize',12);
@@ -96,7 +96,9 @@ for t = 1:length(time)
         end
         
     drawnow;
-end        
+end   
+
+%legend(leg(:),'Overall','x','y','location','southeast');
 
 end
 

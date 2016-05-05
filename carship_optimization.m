@@ -42,6 +42,7 @@ close all;
 
 VARY_WING = 1;  % 1 is to vary parameters
 VARY_FUSE = 0;  % 0 is to not vary parameters
+WORSE_CASE = 0; % will run worse case scenario of complete stop at each turn
 N_ITERATIONS = 250;
 NUM_SUCCESS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -102,8 +103,8 @@ for jj = 1:N_ITERATIONS
         y(t)  = (d(t)*cos(phi(t)))+y0;      % y-coordinate (in)
         vx(t) = (v(t)*sin(phi(t)));         % x-velocity (in/s)
         vy(t) = (v(t)*cos(phi(t)));         % y-velocity (in/s)
-        ax(t) = (a(t)*sin(phi(t)));         % x-acceleration (in/s^2)
-        ay(t) = (a(t)*cos(phi(t)));         % y-acceleration (in/s^2)
+        ax(t) = abs((a(t)*sin(phi(t))));         % x-acceleration (in/s^2)
+        ay(t) = abs((a(t)*cos(phi(t))));         % y-acceleration (in/s^2)
 
         if(y(t)/12 >= DIST)
             TOTAL_TIME_SEC = (t-1)*dt;
@@ -117,9 +118,15 @@ for jj = 1:N_ITERATIONS
         if ((24-x0 < x_threshold) && j >= 5)
             RIGHT = 0;
             j = 1;
+            if WORSE_CASE
+               v0 = 0; 
+            end
         elseif ((24+x0 < x_threshold) && j >= 5)
             RIGHT = 1;
             j = 1;
+            if WORSE_CASE
+               v0 = 0; 
+            end
         else
             j = j+1;
         end
@@ -151,7 +158,7 @@ display(['End Monte Carlo Optimization Process with ' num2str(NUM_SUCCESS) ' suc
 % POST MONTE CARLO ANALYSIS
 min_idx = find([CAR_SUCCESS(:).ttl_time]==min([CAR_SUCCESS(:).ttl_time]));
 FASTEST_CAR = CAR_SUCCESS(min_idx);
-display(['The fastest time is ' num2str(FASTEST_CAR.ttl_time) ' seconds.']);
+display(['The fastest time for best case scenario is ' num2str(FASTEST_CAR.ttl_time) ' seconds.']);
 
 % PLOT VEHICLE
 plot_car(FASTEST_CAR.car_prop,DIST_CG);
