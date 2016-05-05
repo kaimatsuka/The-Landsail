@@ -39,6 +39,20 @@ else
     car.C_BEAM = baseCar.C_BEAM;
 end
 
+% WEIGHT ------------------------------------------------------------------
+
+if VARY_WEIGHT
+   
+    car.WEIGHT = check_allowable(baseCar.WEIGHT,(rand-0.5)*SD.WEIGHT,2,5);
+    car.MASS   = car.WEIGHT/g;
+    
+else
+    
+    car.WEIGHT = baseCar.WEIGHT;
+    car.MASS   = baseCar.MASS;
+    
+end
+
 car.A_WING   = car.S_WING*(car.tip_chord + car.root_chord)/2;		%wing area (in^2)
 car.Sail_Ground_Clearance = baseCar.Sail_Ground_Clearance;
 car.HCE = car.Sail_Ground_Clearance + (car.S_WING^2 * (car.tip_chord/2 + (car.root_chord-car.tip_chord)/6)/car.A_WING);				%height of wing center of effort from ground for trapezoidal sail (in)

@@ -53,13 +53,13 @@ subplot(2,3,6)
 for t = 1:length(time)
 
     subplot(2,3,[1,4])
-        pos_plot(t) = plot(x(t)/12,y(t)/12,'x','markersize',12);
+        pos_plot(t) = plot(x(t)/12,y(t)/12,'x','markersize',10);
         if(t>1)
             delete(pos_plot(t-1));
             plot(x(1:t-1)/12,y(1:t-1)/12,'-k','linewidth',2);
         end
     subplot(2,3,2)
-        velo_plot(t) = plot(time(t),v(t)/12,'x','markersize',12);
+        velo_plot(t) = plot(time(t),v(t)/12,'x','markersize',10);
         velox_plot(t) = plot(time(t),vx(t)/12,'rx','markersize',8);
         veloy_plot(t) = plot(time(t),vy(t)/12,'gx','markersize',8);
         if(t>1)
@@ -68,10 +68,10 @@ for t = 1:length(time)
             delete(veloy_plot(t-1));
             plot(time(1:t-1),v(1:t-1)/12,'-k','linewidth',2);
             plot(time(1:t-1),vx(1:t-1)/12,'-r');
-            plot(time(1:t-1),vy(1:t-1)/12,'-g');
+            plot(time(1:t-1),vy(1:t-1)/12,'-g','linewidth',2);
         end
     subplot(2,3,3)
-        accel_plot(t) = plot(time(t),a(t)/12,'x','markersize',12);
+        accel_plot(t) = plot(time(t),a(t)/12,'x','markersize',10);
         accelx_plot(t) = plot(time(t),ax(t)/12,'rx','markersize',8);
         accely_plot(t) = plot(time(t),ay(t)/12,'gx','markersize',8);
         if(t>1)
@@ -80,10 +80,10 @@ for t = 1:length(time)
             delete(accely_plot(t-1));
             leg(1) = plot(time(1:t-1),a(1:t-1)/12,'-k','linewidth',2);
             leg(2) = plot(time(1:t-1),ax(1:t-1)/12,'-r');
-            leg(3) = plot(time(1:t-1),ay(1:t-1)/12,'-g');
+            leg(3) = plot(time(1:t-1),ay(1:t-1)/12,'-g','linewidth',2);
         end       
     subplot(2,3,5)
-        theta_plot(t) = plot(time(t),theta(t)*180/pi,'x','markersize',12);
+        theta_plot(t) = plot(time(t),theta(t)*180/pi,'x','markersize',10);
         if(t>1)
             delete(theta_plot(t-1));
             plot(time(1:t-1),theta(1:t-1)*180/pi,'-k','linewidth',2);

@@ -22,4 +22,7 @@
     SD.T_BEAM = 0;          % THICKNESS OF CROSS BEAM (IN)
     SD.C_BEAM = 0;          % AVERAGE CROSS BEAM CHORD LENGTH (IN)
     
+% Weight ------------------------------------------------------------------
+
+    SD.WEIGHT = 3;          % CAR WEIGHT (LB)
     

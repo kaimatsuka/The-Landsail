@@ -40,10 +40,11 @@
 clear all;	%clear memory before running program
 close all;
 
-VARY_WING = 1;  % 1 is to vary parameters
-VARY_FUSE = 0;  % 0 is to not vary parameters
-WORSE_CASE = 0; % will run worse case scenario of complete stop at each turn
-N_ITERATIONS = 250;
+VARY_WING = 1;   % 1 is to vary parameters
+VARY_FUSE = 1;   % 0 is to not vary parameters
+VARY_WEIGHT = 1; 
+WORSE_CASE = 0;  % will run worse case scenario of complete stop at each turn
+N_ITERATIONS = 50;
 NUM_SUCCESS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -55,8 +56,7 @@ calc_random_car;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % INITIAL VALUES
-e = 0.050;              %error sensitivity for thrust equilibrium check (lbs)
-x_threshold = 4;        %threshold to wall before car needs to begin turn (in)
+x_threshold = 5;        %threshold to wall before car needs to begin turn (in)
 TOTAL_TIME_BASE = 1000; % seconds
 dt = 0.25;              % interval of time to update accel, velo, pos (s)
 total_time = 10*60;     % total loop time (s)

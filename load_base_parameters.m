@@ -27,8 +27,8 @@ car.CL_DROP_FACTOR = 1.0;			%factor for exponetial lift dropoff after stall
 car.stall = stall_deg*pi/180;		%stall angle (rad)
 
 %total yacht weight
-car.WEIGHT = 2.5;   %total vehicle weight including pilot (lb)
-car.MASS = car.WEIGHT/g; % total vehicle mass (slug)
+baseCar.WEIGHT = 2.5;   %total vehicle weight including pilot (lb)
+baseCar.MASS = baseCar.WEIGHT/g; % total vehicle mass (slug)
 
 %fuselage/body properties
 baseCar.AP_BODY = 4.5;		%total frontal fuselage projected area (in^2)
