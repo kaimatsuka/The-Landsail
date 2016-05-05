@@ -42,15 +42,11 @@ end
 % WEIGHT ------------------------------------------------------------------
 
 if VARY_WEIGHT
-   
     car.WEIGHT = check_allowable(baseCar.WEIGHT,(rand-0.5)*SD.WEIGHT,2,5);
     car.MASS   = car.WEIGHT/g;
-    
 else
-    
     car.WEIGHT = baseCar.WEIGHT;
     car.MASS   = baseCar.MASS;
-    
 end
 
 car.A_WING   = car.S_WING*(car.tip_chord + car.root_chord)/2;		%wing area (in^2)
@@ -77,5 +73,6 @@ car.ARM_CG = (car.WHEELBASE-DIST_CG)*sin(car.zeta_);	%cg moment arm for righting
 car.ARM_CE = (car.WHEELBASE-DIST_CE)*sin(car.zeta_); %CE moment arm for righting moment (in)
 car.ARM_BEAM = (car.TRACK/2)*cos(car.zeta_);			%beam moment arm for righting moment (in)
 
+car.F_DRAG_WHEEL_MIN = Rolling_fric_coeff * car.WEIGHT;		%total rolling resistance at zero velocity (lbs)
 
 

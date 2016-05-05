@@ -44,7 +44,7 @@ VARY_WING = 1;   % 1 is to vary parameters
 VARY_FUSE = 1;   % 0 is to not vary parameters
 VARY_WEIGHT = 1; 
 WORSE_CASE = 0;  % will run worse case scenario of complete stop at each turn
-N_ITERATIONS = 50;
+N_ITERATIONS = 250;
 NUM_SUCCESS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

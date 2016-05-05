@@ -47,7 +47,6 @@ car.B_WHEEL = 0.02;             %drag coefficient of rolling wheel, per wheel (l
 TURN_ANGLE_WHEEL_DEG = 45;  %angle between front wheel and body axis when turning
 
 Rolling_fric_coeff = 0.05112;
-car.F_DRAG_WHEEL_MIN = Rolling_fric_coeff * car.WEIGHT;		%total rolling resistance at zero velocity (lbs)
 %for small models on wheels with bearings B_WHEEL is on the order of 0.010 lb/(rev/sec)
 %for full sized landyachts B_WHEEL is on the order of 0.10 lb/(rev/sec)
 
