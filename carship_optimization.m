@@ -41,7 +41,7 @@ clear all;	%clear memory before running program
 close all;
 
 MONTE_CARLO = 0; 
-
+WORSE_CASE = 1;  % will run worse case scenario of complete stop at each turn
 N_ITERATIONS = 1;
 
 if MONTE_CARLO
@@ -55,7 +55,6 @@ else
     N_ITERATIONS = 1;
 end
 
-WORSE_CASE = 0;  % will run worse case scenario of complete stop at each turn
 NUM_SUCCESS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -116,8 +115,8 @@ for jj = 1:N_ITERATIONS
         y(t)  = (d(t)*cos(phi(t)))+y0;      % y-coordinate (in)
         vx(t) = (v(t)*sin(phi(t)));         % x-velocity (in/s)
         vy(t) = (v(t)*cos(phi(t)));         % y-velocity (in/s)
-        ax(t) = abs((a(t)*sin(phi(t))));         % x-acceleration (in/s^2)
-        ay(t) = abs((a(t)*cos(phi(t))));         % y-acceleration (in/s^2)
+        ax(t) = (a(t)*sin(phi(t)));         % x-acceleration (in/s^2)
+        ay(t) = (a(t)*cos(phi(t)));         % y-acceleration (in/s^2)
 
         if(y(t)/12 >= DIST)
             TOTAL_TIME_SEC = (t-1)*dt;
@@ -169,13 +168,16 @@ end
 display(['End Monte Carlo Optimization Process with ' num2str(NUM_SUCCESS) ' successes.']);
 %%END MONTE CARLO%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+
 % POST MONTE CARLO ANALYSIS
 min_idx = find([CAR_SUCCESS(:).ttl_time]==min([CAR_SUCCESS(:).ttl_time]));
 FASTEST_CAR = CAR_SUCCESS(min_idx);
 display(['The fastest time for best case scenario is ' num2str(FASTEST_CAR.ttl_time) ' seconds.']);
 
+
 % PLOT VEHICLE
 plot_car(FASTEST_CAR.car_prop,DIST_CG);
+
 
 % PLOT TRAJECTORY
 plot_traj(FASTEST_CAR.time_vec, FASTEST_CAR.v, FASTEST_CAR.a,...

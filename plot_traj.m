@@ -98,7 +98,7 @@ for t = 1:length(time)
     drawnow;
 end   
 
-%legend(leg(:),'Overall','x','y','location','southeast');
+legend(leg(:),'Overall','x','y','location','southeast');
 
 end
 
