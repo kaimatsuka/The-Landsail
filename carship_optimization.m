@@ -40,24 +40,37 @@
 clear all;	%clear memory before running program
 close all;
 
-VARY_WING = 1;   % 1 is to vary parameters
-VARY_FUSE = 1;   % 0 is to not vary parameters
-VARY_WEIGHT = 1; 
+MONTE_CARLO = 0; 
+
+N_ITERATIONS = 1;
+
+if MONTE_CARLO
+    VARY_WING = 0;   % 1 is to vary parameters
+    VARY_FUSE = 0;   % 0 is to not vary parameters
+    VARY_WEIGHT = 0; 
+else
+    VARY_WING = 0;
+    VARY_FUSE = 0;
+    VARY_WEIGHT = 0;
+    N_ITERATIONS = 1;
+end
+
 WORSE_CASE = 0;  % will run worse case scenario of complete stop at each turn
-N_ITERATIONS = 250;
 NUM_SUCCESS = 0;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load_base_parameters;
 load_variation_parameters;
 
-calc_random_car;
+if MONTE_CARLO
+    calc_random_car;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % INITIAL VALUES
 x_threshold = 4;        %threshold to wall before car needs to begin turn (in)
-TOTAL_TIME_BASE = 1000; % seconds
+TOTAL_TIME_BASE = 60;   % seconds
 dt = 0.25;              % interval of time to update accel, velo, pos (s)
 total_time = 10*60;     % total loop time (s)
 
@@ -69,7 +82,7 @@ for jj = 1:N_ITERATIONS
         fprintf('.');
     end
     if mod(jj,50) == 0
-       fprintf(' %d iterations\n',jj) 
+       fprintf(' %d iterations\n',jj)                                       
     end
     
     % randomly vary car via Monte Carlo Iteration Process
@@ -134,10 +147,11 @@ for jj = 1:N_ITERATIONS
     
     if TOTAL_TIME_SEC < TOTAL_TIME_BASE
        NUM_SUCCESS = NUM_SUCCESS + 1;
-       TOTAL_TIME_BASE = TOTAL_TIME_SEC;
+%       TOTAL_TIME_BASE = TOTAL_TIME_SEC;  -- this command is for genetic
+%       monte carlo algorithm
        CAR_SUCCESS(NUM_SUCCESS).car_prop = car;
-       CAR_SUCCESS(NUM_SUCCESS).ttl_time = TOTAL_TIME_BASE;
-       CAR_SUCCESS(NUM_SUCCESS).time_vec = (0:dt:TOTAL_TIME_BASE)';
+       CAR_SUCCESS(NUM_SUCCESS).ttl_time = TOTAL_TIME_SEC;
+       CAR_SUCCESS(NUM_SUCCESS).time_vec = (0:dt:TOTAL_TIME_SEC)';
        CAR_SUCCESS(NUM_SUCCESS).x     = x(:);            % x-pos
        CAR_SUCCESS(NUM_SUCCESS).y     = y(:);            % y-pos
        CAR_SUCCESS(NUM_SUCCESS).v     = v(:);            % speed
